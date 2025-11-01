@@ -1,8 +1,7 @@
 /* eslint-disable no-undef */
 document.addEventListener("DOMContentLoaded", () => {
-    const API_URL = (window.location.port === "8000" && /^https?:/i.test(window.location.origin))
-        ? window.location.origin
-        : "http://localhost:8000";
+    // Base da API: usa o mesmo host em produção; localhost em dev
+    const API_URL = (/^https?:/i.test(window.location.origin)) ? window.location.origin : "http://localhost:8000";
 	const lista = document.getElementById("checkout-lista");
 	const totalEl = document.getElementById("checkout-total");
 	const msg = document.getElementById("checkout-msg");

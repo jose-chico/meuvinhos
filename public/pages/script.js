@@ -1,5 +1,7 @@
 /* eslint-disable no-undef */
 document.addEventListener("DOMContentLoaded", () => {
+    // Base da API: usa o mesmo host em produção; localhost em dev
+    const API_URL = (/^https?:/i.test(window.location.origin)) ? window.location.origin : "http://localhost:8000";
 	const lista = document.getElementById("lista-produtos");
 	const btnAtualizar = document.getElementById("btnAtualizar");
 	const btnCart = document.getElementById("btnCart");
@@ -58,7 +60,6 @@ document.addEventListener("DOMContentLoaded", () => {
 		if (!submenuVinhos) return;
 		try {
 			const token = localStorage.getItem("token");
-		const API_URL = (/^https?:/i.test(window.location.origin)) ? window.location.origin : "http://localhost:8000";
 		const response = await fetch(`${API_URL}/produtos`, {
 				headers: { Authorization: token ? `Bearer ${token}` : undefined },
 			});
@@ -95,7 +96,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 		try {
 			const token = localStorage.getItem("token");
-			const response = await fetch("http://localhost:8000/produtos", {
+			const response = await fetch(`${API_URL}/produtos`, {
 				headers: { Authorization: token ? `Bearer ${token}` : undefined },
 			});
 			const data = await response.json();
