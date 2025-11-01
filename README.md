@@ -10,7 +10,7 @@ Copie `.env.example` e preencha em dev. Em produção, defina no painel do prove
 - `NODE_ENV=production`
 - `PORT=8000` (ou a porta do seu serviço)
 - `APP_URL=https://seu-dominio.com`
-- `STRIPE_SECRET_KEY=sk_live_xxx`
+- `STRIPE_SECRET_KEY=<defina_no_provedor>`
 - `JWT_SECRET` e `JWT_EXPIRES_IN`
 - SMTP (opcional) ou `FAKE_MAIL=true` em dev
 
@@ -39,7 +39,7 @@ Acesse `http://localhost:8000/pages/index.html`.
 4. Após o primeiro build, execute migrações via job/CLI: `npm run migrate:deploy`.
 
 ## Notas Stripe
-- Em dev use `sk_test_...`; o código bloqueia `sk_live_...` fora de `NODE_ENV=production`.
+- Em dev use chaves de teste (formato `sk_test_…`). Live somente em produção (`NODE_ENV=production`).
 - Configure `APP_URL` para definir `success_url` e `cancel_url` corretamente.
 - Use cartões de teste: `4242 4242 4242 4242`.
 
