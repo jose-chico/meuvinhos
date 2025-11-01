@@ -2,9 +2,8 @@ import { Request, Response } from 'express';
 import Stripe from 'stripe';
 import { client } from '../../database/client';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-11-20.acacia',
-});
+// Não definir apiVersion para usar a versão padrão do SDK/conta
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 export const StripeWebhookController = async (req: Request, res: Response) => {
   const sig = req.headers['stripe-signature'] as string;
