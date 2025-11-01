@@ -27,6 +27,8 @@ import { DeletarProdutoController } from "../controllers/produto/DeletarProdutoC
 import { ResetPasswordController } from "../controllers/auth/ResetPasswordController";
 import { CheckoutController } from "../controllers/services/CheckoutController";
 import { StripeCheckoutController, StripeCheckoutControllerPost } from "../controllers/services/StripeCheckoutController";
+import { StripeWebhookController } from "../controllers/services/StripeWebhookController";
+import { GetPaymentBySessionController } from "../controllers/services/PaymentController";
 
 const router = Router();
 
@@ -43,6 +45,12 @@ router.post("/auth/reset-password", ResetPasswordController);
 router.get("/checkout", CheckoutController);
 router.get("/checkout/stripe", StripeCheckoutController);
 router.post("/checkout/stripe", StripeCheckoutControllerPost);
+
+// Webhook do Stripe (pública)
+router.post("/webhook/stripe", StripeWebhookController);
+
+// Buscar dados do pagamento (pública)
+router.get("/payment/:session_id", GetPaymentBySessionController);
 
 /**
  * Rotas protegidas (exigem Bearer Token)

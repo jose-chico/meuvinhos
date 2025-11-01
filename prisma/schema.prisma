@@ -69,3 +69,24 @@ model PasswordResetToken {
   @@index([usuarioId])
   @@index([expiresAt])
 }
+
+model Payment {
+  id                String   @id @default(cuid())
+  stripePaymentId   String   @unique // payment_intent.id do Stripe
+  stripeSessionId   String?  // checkout.session.id do Stripe
+  amount            Float    // valor em reais (ex: 258.90)
+  currency          String   @default("BRL")
+  status            String   // succeeded, pending, failed
+  paymentMethod     String   // card, pix
+  customerEmail     String?  // email do cliente
+  customerName      String?  // nome do cliente
+  products          Json     // array dos produtos comprados
+  metadata          Json?    // dados extras do Stripe
+  paidAt            DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([stripePaymentId])
+  @@index([customerEmail])
+  @@index([status])
+}

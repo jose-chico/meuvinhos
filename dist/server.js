@@ -15,6 +15,9 @@ const app = (0, express_1.default)();
 // Respeita cabeçalhos X-Forwarded-* quando estiver atrás de proxy/CDN
 app.set("trust proxy", 1);
 app.use((0, cors_1.default)());
+// Middleware para webhook do Stripe (precisa de raw body)
+app.use('/webhook/stripe', express_1.default.raw({ type: 'application/json' }));
+// Middleware padrão para outras rotas
 app.use(express_1.default.json());
 app.use(express_1.default.static(path_1.default.join(__dirname, "..", "public")));
 app.use(router_1.router);

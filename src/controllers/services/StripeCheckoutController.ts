@@ -37,6 +37,10 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
+      // Habilita métodos de pagamento: cartão e Pix
+      payment_method_types: ["card", "pix"],
+      // Define o locale para PT-BR na página de checkout
+      locale: "pt-BR",
       success_url: `${appUrl}/pages/confirmacao-pagamento.html?amount=${total.toFixed(2)}&currency=${currency}`,
       cancel_url: `${appUrl}/pages/carrinho.html`,
       line_items: [
@@ -96,10 +100,19 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
 
     const amountInCents = Math.round(total * 100);
 
+    // Extrair produtos do carrinho (se enviados)
+    const products = req.body?.products || [];
+    
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      success_url: `${appUrl}/pages/confirmacao-pagamento.html?amount=${total.toFixed(2)}&currency=${currency}`,
+      payment_method_types: ["card", "pix"],
+      locale: "pt-BR",
+      success_url: `${appUrl}/pages/confirmacao-pagamento.html?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/pages/carrinho.html`,
+      metadata: {
+        products: JSON.stringify(products),
+        total: total.toString(),
+      },
       line_items: [
         {
           price_data: {

@@ -6,6 +6,93 @@
   <title>Confirmação de Pagamento - Casa de Vinho 🍷</title>
   <link rel="stylesheet" href="style.css" />
   <script src="https://kit.fontawesome.com/9e62b207e5.js" crossorigin="anonymous"></script>
+  <style>
+    .receipt-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 2rem;
+      margin: 2rem auto;
+      max-width: 600px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .receipt-header {
+      text-align: center;
+      border-bottom: 2px solid var(--border-color);
+      padding-bottom: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .receipt-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--border-color-light);
+    }
+    .receipt-row:last-child {
+      border-bottom: none;
+    }
+    .receipt-label {
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+    .receipt-value {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .receipt-total {
+      background: var(--accent-bg);
+      padding: 1rem;
+      border-radius: 8px;
+      margin: 1rem 0;
+      text-align: center;
+    }
+    .receipt-products {
+      margin: 1.5rem 0;
+    }
+    .product-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem;
+      background: var(--bg-secondary);
+      border-radius: 6px;
+      margin-bottom: 0.5rem;
+    }
+    .product-name {
+      font-weight: 500;
+    }
+    .product-price {
+      font-weight: 600;
+      color: var(--accent-color);
+    }
+    .loading-state {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-secondary);
+    }
+    .error-state {
+      text-align: center;
+      padding: 2rem;
+      color: #ef4444;
+    }
+    .status-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .status-succeeded {
+      background: #22c55e;
+      color: white;
+    }
+    .status-pending {
+      background: #f59e0b;
+      color: white;
+    }
+  </style>
 </head>
 <body>
   <div class="frete-bar">🚚 Frete grátis acima de R$ 199,00 Brasil inteiro</div>
@@ -22,14 +109,64 @@
   </header>
 
   <main class="checkout-page">
-    <div class="checkout-card">
-      <h1><i class="fa-solid fa-check-circle" style="color: #22c55e;"></i> Pagamento Confirmado!</h1>
-      <div style="text-align: center; margin: 2rem 0;">
-        <p><strong>Valor:</strong> <span id="valor-pagamento">R$ 0,00</span></p>
-        <p style="color: #aaa; margin-top: 1rem;">
-          Esta é uma simulação de pagamento.<br>
-          Em produção, aqui seria integrado com um gateway real.
-        </p>
+    <!-- Estado de carregamento -->
+    <div id="loading-state" class="receipt-card loading-state">
+      <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+      <p>Carregando dados do pagamento...</p>
+    </div>
+
+    <!-- Estado de erro -->
+    <div id="error-state" class="receipt-card error-state" style="display: none;">
+      <i class="fa-solid fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+      <p>Não foi possível carregar os dados do pagamento.</p>
+      <button id="btn-retry" class="checkout-btn-big" style="margin-top: 1rem;">
+        <i class="fa-solid fa-refresh"></i> Tentar novamente
+      </button>
+    </div>
+
+    <!-- Recibo detalhado -->
+    <div id="receipt-card" class="receipt-card" style="display: none;">
+      <div class="receipt-header">
+        <h1><i class="fa-solid fa-check-circle" style="color: #22c55e;"></i> Pagamento Confirmado!</h1>
+        <p style="color: var(--text-secondary); margin-top: 0.5rem;">Obrigado pela sua compra</p>
+      </div>
+
+      <div class="receipt-row">
+        <span class="receipt-label">Número do Pedido:</span>
+        <span class="receipt-value" id="order-number">#PED-2024-001</span>
+      </div>
+
+      <div class="receipt-row">
+        <span class="receipt-label">Data do Pagamento:</span>
+        <span class="receipt-value" id="payment-date">-</span>
+      </div>
+
+      <div class="receipt-row">
+        <span class="receipt-label">Status:</span>
+        <span class="status-badge status-succeeded" id="payment-status">Pago</span>
+      </div>
+
+      <div class="receipt-row">
+        <span class="receipt-label">Método de Pagamento:</span>
+        <span class="receipt-value" id="payment-method">-</span>
+      </div>
+
+      <div class="receipt-row" id="customer-info" style="display: none;">
+        <span class="receipt-label">Cliente:</span>
+        <span class="receipt-value" id="customer-name">-</span>
+      </div>
+
+      <div class="receipt-products">
+        <h3 style="margin-bottom: 1rem; color: var(--text-primary);">Produtos Comprados:</h3>
+        <div id="products-list">
+          <!-- Produtos serão inseridos aqui -->
+        </div>
+      </div>
+
+      <div class="receipt-total">
+        <h2 style="margin: 0; color: var(--text-primary);">
+          Total Pago: <span id="total-amount">R$ 0,00</span>
+        </h2>
       </div>
       
       <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem;">
@@ -48,21 +185,126 @@
   </footer>
 
   <script>
-    // Extrai e formata valor da URL
-    const params = new URLSearchParams(window.location.search);
-    const amountParam = params.get('amount');
-    const currency = params.get('currency') || 'BRL';
-    const amountNum = parseFloat(String(amountParam || '0'));
-    const formatted = new Intl.NumberFormat('pt-BR', { style: 'currency', currency }).format(Number.isFinite(amountNum) ? amountNum : 0);
-    document.getElementById('valor-pagamento').textContent = formatted;
+    // Base da API
+    const API_URL = (/^https?:/i.test(window.location.origin)) ? window.location.origin : "http://localhost:8000";
+    
+    // Elementos DOM
+    const loadingState = document.getElementById('loading-state');
+    const errorState = document.getElementById('error-state');
+    const receiptCard = document.getElementById('receipt-card');
+    
+    // Função para carregar dados do pagamento
+    async function loadPaymentData() {
+      try {
+        // Extrair session_id da URL
+        const params = new URLSearchParams(window.location.search);
+        const sessionId = params.get('session_id');
+        
+        if (!sessionId) {
+          throw new Error('Session ID não encontrado na URL');
+        }
 
-    // Ações dos botões
+        // Buscar dados do pagamento
+        const response = await fetch(`${API_URL}/payment/${sessionId}`);
+        
+        if (!response.ok) {
+          throw new Error('Pagamento não encontrado');
+        }
+
+        const payment = await response.json();
+        
+        // Exibir dados do pagamento
+        displayPaymentData(payment);
+        
+      } catch (error) {
+        console.error('Erro ao carregar pagamento:', error);
+        showError();
+      }
+    }
+
+    // Função para exibir dados do pagamento
+    function displayPaymentData(payment) {
+      // Ocultar loading e mostrar recibo
+      loadingState.style.display = 'none';
+      errorState.style.display = 'none';
+      receiptCard.style.display = 'block';
+
+      // Preencher dados básicos
+      document.getElementById('order-number').textContent = `#${payment.id.slice(-8).toUpperCase()}`;
+      
+      // Formatar data
+      const paymentDate = new Date(payment.paidAt || payment.createdAt);
+      document.getElementById('payment-date').textContent = paymentDate.toLocaleString('pt-BR');
+      
+      // Status
+      const statusEl = document.getElementById('payment-status');
+      statusEl.textContent = payment.status === 'succeeded' ? 'Pago' : 'Pendente';
+      statusEl.className = `status-badge status-${payment.status}`;
+      
+      // Método de pagamento
+      const methodMap = {
+        'card': 'Cartão de Crédito',
+        'pix': 'PIX',
+        'unknown': 'Não identificado'
+      };
+      document.getElementById('payment-method').textContent = methodMap[payment.paymentMethod] || payment.paymentMethod;
+      
+      // Cliente (se disponível)
+      if (payment.customerName) {
+        document.getElementById('customer-info').style.display = 'flex';
+        document.getElementById('customer-name').textContent = payment.customerName;
+      }
+      
+      // Produtos
+      const productsList = document.getElementById('products-list');
+      if (payment.products && Array.isArray(payment.products) && payment.products.length > 0) {
+        productsList.innerHTML = payment.products.map(product => `
+          <div class="product-item">
+            <span class="product-name">${product.nome || 'Produto'}</span>
+            <span class="product-price">R$ ${parseFloat(product.preco || 0).toFixed(2)}</span>
+          </div>
+        `).join('');
+      } else {
+        productsList.innerHTML = `
+          <div class="product-item">
+            <span class="product-name">Pedido Casa de Vinho</span>
+            <span class="product-price">R$ ${payment.amount.toFixed(2)}</span>
+          </div>
+        `;
+      }
+      
+      // Total
+      const formatted = new Intl.NumberFormat('pt-BR', { 
+        style: 'currency', 
+        currency: payment.currency 
+      }).format(payment.amount);
+      document.getElementById('total-amount').textContent = formatted;
+    }
+
+    // Função para mostrar erro
+    function showError() {
+      loadingState.style.display = 'none';
+      receiptCard.style.display = 'none';
+      errorState.style.display = 'block';
+    }
+
+    // Event listeners
+    document.getElementById('btn-retry').addEventListener('click', () => {
+      errorState.style.display = 'none';
+      loadingState.style.display = 'block';
+      loadPaymentData();
+    });
+
     document.getElementById('btn-voltar-inicio').addEventListener('click', () => {
       window.location.href = 'index.html';
     });
+
     document.getElementById('btn-novo-pedido').addEventListener('click', () => {
       window.location.href = 'index.html';
     });
+
+    // Carregar dados ao inicializar
+    loadPaymentData();
   </script>
   <script src="tema.js"></script>
 </body>

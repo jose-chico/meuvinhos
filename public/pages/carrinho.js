@@ -67,7 +67,11 @@ document.addEventListener("DOMContentLoaded", () => {
             const res = await fetch(`${API_URL}/checkout/stripe`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ total: Number(total.toFixed(2)), currency: "BRL" })
+                body: JSON.stringify({ 
+                    total: Number(total.toFixed(2)), 
+                    currency: "BRL",
+                    products: carrinho 
+                })
             });
             const data = await res.json();
 

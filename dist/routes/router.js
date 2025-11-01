@@ -24,6 +24,8 @@ const DeletarProdutoController_1 = require("../controllers/produto/DeletarProdut
 const ResetPasswordController_1 = require("../controllers/auth/ResetPasswordController");
 const CheckoutController_1 = require("../controllers/services/CheckoutController");
 const StripeCheckoutController_1 = require("../controllers/services/StripeCheckoutController");
+const StripeWebhookController_1 = require("../controllers/services/StripeWebhookController");
+const PaymentController_1 = require("../controllers/services/PaymentController");
 const router = (0, express_1.Router)();
 exports.router = router;
 /**
@@ -38,6 +40,10 @@ router.post("/auth/reset-password", ResetPasswordController_1.ResetPasswordContr
 router.get("/checkout", CheckoutController_1.CheckoutController);
 router.get("/checkout/stripe", StripeCheckoutController_1.StripeCheckoutController);
 router.post("/checkout/stripe", StripeCheckoutController_1.StripeCheckoutControllerPost);
+// Webhook do Stripe (pública)
+router.post("/webhook/stripe", StripeWebhookController_1.StripeWebhookController);
+// Buscar dados do pagamento (pública)
+router.get("/payment/:session_id", PaymentController_1.GetPaymentBySessionController);
 /**
  * Rotas protegidas (exigem Bearer Token)
  */

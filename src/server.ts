@@ -14,6 +14,11 @@ const app = express();
 app.set("trust proxy", 1);
 
 app.use(cors());
+
+// Middleware para webhook do Stripe (precisa de raw body)
+app.use('/webhook/stripe', express.raw({ type: 'application/json' }));
+
+// Middleware padrão para outras rotas
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "..", "public")));
 app.use(router);
