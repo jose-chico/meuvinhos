@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import Stripe from 'stripe';
-import { client } from '../../database/client';
+import { prisma } from '../../database/client';
 
 // Não definir apiVersion para usar a versão padrão do SDK/conta
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
@@ -76,7 +76,7 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
     }
 
     // Salvar pagamento no banco
-    const payment = await client.payment.create({
+    const payment = await prisma.payment.create({
       data: {
         stripePaymentId: paymentIntent.id,
         stripeSessionId: session?.id || null,

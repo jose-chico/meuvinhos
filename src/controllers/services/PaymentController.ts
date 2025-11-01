@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { client } from '../../database/client';
+import { prisma } from '../../database/client';
 
 export const GetPaymentBySessionController = async (req: Request, res: Response) => {
   try {
@@ -10,7 +10,7 @@ export const GetPaymentBySessionController = async (req: Request, res: Response)
     }
 
     // Buscar pagamento pelo session_id
-    const payment = await client.payment.findFirst({
+    const payment = await prisma.payment.findFirst({
       where: {
         stripeSessionId: session_id,
       },
