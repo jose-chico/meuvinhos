@@ -2,118 +2,197 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Redefinir senha</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Redefinir Senha</title>
+  <link rel="stylesheet" href="css/style.css" />
   <style>
-    :root{ --bg:#0a0f0a; --card:#0f1710; --text:#ecfdf5; --muted:#b7f7ce;
-      --accent:#34d399; --border:#1e2a1f; --input:#0d140e; --shadow:0 10px 30px rgba(0,0,0,.25) }
-    *{box-sizing:border-box}
-    body{
-      margin:0; font-family:system-ui,Segoe UI,Roboto; color:var(--text);
-      background: radial-gradient(1200px 800px at 80% -10%, rgba(52,211,153,.14), transparent 60%),
-                  radial-gradient(900px 700px at -10% 110%, rgba(16,185,129,.10), transparent 60%),
-                  linear-gradient(180deg,#081108,#0a0f0a);
-      min-height:100vh; display:grid; place-items:center;
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #2ecc71, #27ae60);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
     }
-    .card{width:100%; max-width:420px; background:linear-gradient(180deg,rgba(52,211,153,.06),transparent 40%), var(--card);
-      border:1px solid var(--border); border-radius:18px; padding:22px; box-shadow:var(--shadow)}
-    h1{margin:0 0 10px}
-    .grid{display:grid; gap:12px}
-    .input{background:var(--input); border:1px solid var(--border); border-radius:12px; color:var(--text); padding:12px 14px; outline:none}
-    .input:focus{border-color:var(--accent); box-shadow:0 0 0 3px rgba(52,211,153,.12)}
-    .btn{background:var(--accent); border:1px solid transparent; color:#052e1a; font-weight:600; padding:12px 16px; border-radius:12px; cursor:pointer}
-    .btn[disabled]{opacity:.6; cursor:not-allowed}
-    .muted{color:var(--muted); font-size:14px}
-    .error{color:#fecaca}
-    .row{display:flex; gap:8px; align-items:center}
-    .small{font-size:13px}
+
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      padding: 2rem;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+      position: relative;
+    }
+
+    h2 {
+      color: #065f46;
+      margin-bottom: 1rem;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 1rem;
+      text-align: left;
+    }
+
+    .input-group label {
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 4px;
+    }
+
+    .input-group input {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+
+    .btn-primary {
+      width: 100%;
+      background-color: #10b981;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .btn-primary:hover {
+      background-color: #0e9f6e;
+    }
+
+    .form-msg {
+      text-align: center;
+      margin-top: 1rem;
+      font-size: 0.9rem;
+    }
+
+    .msg-ok {
+      color: #16a34a;
+      font-weight: bold;
+    }
+
+    .msg-err {
+      color: #dc2626;
+      font-weight: bold;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 1.5rem;
+      font-size: 0.85rem;
+    }
+
+    .footer a {
+      color: #10b981;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    /* Campo de token oculto */
+    #token-group {
+      display: none;
+    }
+
+    /* Ícone de sucesso animado */
+    .success-animation {
+      display: none;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      animation: fadeIn 0.5s ease-in-out;
+    }
+
+    .checkmark {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      display: block;
+      stroke-width: 4;
+      stroke: #16a34a;
+      stroke-miterlimit: 10;
+      box-shadow: inset 0px 0px 0px #16a34a;
+      animation: fill .4s ease-in-out .4s forwards, scale .3s ease-in-out .9s both;
+      margin: 20px auto;
+    }
+
+    .checkmark__circle {
+      stroke-dasharray: 166;
+      stroke-dashoffset: 166;
+      stroke-width: 4;
+      stroke-miterlimit: 10;
+      stroke: #16a34a;
+      fill: none;
+      animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+    }
+
+    .checkmark__check {
+      transform-origin: 50% 50%;
+      stroke-dasharray: 48;
+      stroke-dashoffset: 48;
+      animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+    }
+
+    @keyframes stroke {
+      100% { stroke-dashoffset: 0; }
+    }
+
+    @keyframes scale {
+      0%, 100% { transform: none; }
+      50% { transform: scale3d(1.1, 1.1, 1); }
+    }
+
+    @keyframes fill {
+      100% { box-shadow: inset 0px 0px 0px 30px #16a34a; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
   </style>
 </head>
 <body>
   <div class="card">
-    <h1>Redefinir senha</h1>
-    <div id="noToken" class="muted error" style="display:none">Link inválido: token ausente.</div>
+    <h2>Redefinir Senha</h2>
 
-    <div class="grid" id="formArea" style="display:none">
-      <input id="senha" class="input" type="password" placeholder="Nova senha (mín. 6)" autocomplete="new-password" />
-      <input id="senha2" class="input" type="password" placeholder="Confirmar nova senha" autocomplete="new-password" />
-      <div class="row small muted">
-        <input id="show" type="checkbox" /> <label for="show">Mostrar senha</label>
+    <!-- Formulário -->
+    <form id="resetForm">
+      <div class="input-group" id="token-group">
+        <input type="text" id="token" />
       </div>
-      <button id="btnReset" class="btn" type="button" disabled>Trocar senha</button>
-      <div id="msg" class="muted"></div>
-      <a href="login.html" class="small" style="text-decoration:underline; color:var(--muted)">Voltar ao login</a>
+
+      <div class="input-group">
+        <label for="novaSenha">Nova Senha</label>
+        <input type="password" id="novaSenha" placeholder="Digite a nova senha" required />
+      </div>
+
+      <button type="submit" class="btn-primary">Redefinir Senha</button>
+      <div id="msg" class="form-msg"></div>
+    </form>
+
+    <!-- Animação de sucesso -->
+    <div id="successAnimation" class="success-animation">
+      <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+        <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+        <path class="checkmark__check" fill="none" d="M14 27l7 7 16-16"/>
+      </svg>
+      <p style="color:#16a34a; font-weight:600;">Senha redefinida com sucesso!</p>
+    </div>
+
+    <div class="footer">
+      <a href="index.html">Voltar ao login</a>
     </div>
   </div>
 
-  <script>
-    const els = {
-      senha: document.getElementById('senha'),
-      senha2: document.getElementById('senha2'),
-      btn: document.getElementById('btnReset'),
-      msg: document.getElementById('msg'),
-      show: document.getElementById('show'),
-      noToken: document.getElementById('noToken'),
-      formArea: document.getElementById('formArea'),
-    };
-
-    const API = (() => {
-      const saved = localStorage.getItem('apiBase');
-      if (saved) return saved.replace(/\/+$/, '');
-      const origin = window.location.origin;
-      if (origin && origin.startsWith('http')) return origin;
-      return 'https://minha-api-node-p0p6.onrender.com';
-    })();
-
-    const params = new URLSearchParams(location.search);
-    const token = params.get('token');
-
-    if(!token){ els.noToken.style.display = 'block'; } else { els.formArea.style.display = 'grid'; }
-
-    function setMsg(t, cls=''){ els.msg.textContent = t || ''; els.msg.className = 'muted ' + cls; }
-    function canSubmit(){ return els.senha.value.length >= 6 && els.senha.value === els.senha2.value; }
-    function toggle(){ els.btn.disabled = !canSubmit(); }
-
-    [els.senha, els.senha2].forEach(i => {
-      i.addEventListener('input', toggle);
-      i.addEventListener('keydown', e => { if(e.key==='Enter' && !els.btn.disabled) els.btn.click(); });
-    });
-
-    els.show.addEventListener('change', () => {
-      const type = els.show.checked ? 'text' : 'password';
-      els.senha.type = type; els.senha2.type = type;
-    });
-
-    // RESET -> envia { token, novaSenha }
-    els.btn.addEventListener('click', async () => {
-      if (!canSubmit()) return;
-      setMsg('Trocando senha...');
-      els.btn.disabled = true;
-      try{
-        const res = await fetch(API + '/auth/reset-password', {
-          method:'POST',
-          headers:{ 'Content-Type':'application/json' },
-          body: JSON.stringify({ token, novaSenha: els.senha.value })
-        });
-        const data = await res.json().catch(()=>({}));
-
-        if(res.status === 400){ setMsg(data?.message || 'Token inválido ou expirado.', 'error'); return; }
-        if(res.status === 401){ setMsg('Não autorizado.', 'error'); return; }
-        if(!res.ok){
-          const txt = Array.isArray(data) ? data.map(i=>i.message).join(' | ') : (data.message || 'Erro');
-          throw new Error(txt);
-        }
-
-        setMsg('Senha alterada com sucesso. Você já pode entrar!');
-        setTimeout(()=> location.href = 'login.html', 1400);
-      }catch(err){
-        setMsg(err.message || 'Erro ao redefinir senha.', 'error');
-      }finally{
-        toggle();
-      }
-    });
-
-    toggle();
-  </script>
+  <script src="js/reset.js"></script>
 </body>
 </html>

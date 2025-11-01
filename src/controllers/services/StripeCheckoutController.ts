@@ -1,0 +1,125 @@
+import { Request, Response } from "express";
+import Stripe from "stripe";
+
+export const StripeCheckoutController = async (req: Request, res: Response) => {
+  try {
+    const secretKey = process.env.STRIPE_SECRET_KEY;
+    if (typeof secretKey !== "string" || secretKey.trim().length === 0) {
+      return res.status(500).json({ message: "Stripe não configurado. Defina STRIPE_SECRET_KEY no .env." });
+    }
+
+    // Proteção: não permitir chave LIVE fora de produção
+    const isLiveKey = secretKey.startsWith("sk_live_");
+    const isProduction = (process.env.NODE_ENV || "development") === "production";
+    if (isLiveKey && !isProduction) {
+      return res.status(400).json({
+        message: "Chave live detectada em ambiente não-produtivo. Use sk_test_... localmente ou defina NODE_ENV=production no servidor."
+      });
+    }
+
+    const stripe = new Stripe(secretKey);
+
+    const totalStr = String(req.query.total ?? "0");
+    const total = parseFloat(totalStr);
+    if (!Number.isFinite(total) || total <= 0) {
+      return res.status(400).json({ message: "Total inválido para checkout." });
+    }
+
+    // Construção da origem dinâmica
+    const forwardedProto = (req.headers["x-forwarded-proto"] as string) || undefined;
+    const protocol = forwardedProto || req.protocol || "http";
+    const host = req.get("host") || "localhost:8000";
+    const origin = `${protocol}://${host}`;
+    const appUrl = (process.env.APP_URL || origin).replace(/\/$/, "");
+
+    const amountInCents = Math.round(total * 100);
+    const currency = (String(req.query.currency || "BRL").toUpperCase());
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      success_url: `${appUrl}/pages/confirmacao-pagamento.html?amount=${total.toFixed(2)}&currency=${currency}`,
+      cancel_url: `${appUrl}/pages/carrinho.html`,
+      line_items: [
+        {
+          price_data: {
+            currency,
+            product_data: { name: "Pedido Casa de Vinho" },
+            unit_amount: amountInCents,
+          },
+          quantity: 1,
+        },
+      ],
+    });
+
+    return res.status(200).json({ message: "Stripe Checkout iniciado", url: session.url });
+  } catch (err: unknown) {
+    let message = "Erro ao iniciar checkout com Stripe.";
+    if (err instanceof Error) {
+      message = err.message;
+    } else if (typeof err === "string") {
+      message = err;
+    }
+    return res.status(500).json({ message });
+  }
+};
+
+export const StripeCheckoutControllerPost = async (req: Request, res: Response) => {
+  try {
+    const secretKey = process.env.STRIPE_SECRET_KEY;
+    if (typeof secretKey !== "string" || secretKey.trim().length === 0) {
+      return res.status(500).json({ message: "Stripe não configurado. Defina STRIPE_SECRET_KEY no .env." });
+    }
+
+    const isLiveKey = secretKey.startsWith("sk_live_");
+    const isProduction = (process.env.NODE_ENV || "development") === "production";
+    if (isLiveKey && !isProduction) {
+      return res.status(400).json({
+        message: "Chave live detectada em ambiente não-produtivo. Use sk_test_... localmente ou defina NODE_ENV=production no servidor."
+      });
+    }
+
+    const stripe = new Stripe(secretKey);
+
+    const total = Number(req.body?.total);
+    if (!Number.isFinite(total) || total <= 0) {
+      return res.status(400).json({ message: "Total inválido para checkout." });
+    }
+
+    const currency = String(req.body?.currency || "BRL").toUpperCase();
+
+    // Construção da origem dinâmica
+    const forwardedProto = (req.headers["x-forwarded-proto"] as string) || undefined;
+    const protocol = forwardedProto || req.protocol || "http";
+    const host = req.get("host") || "localhost:8000";
+    const origin = `${protocol}://${host}`;
+    const appUrl = (process.env.APP_URL || origin).replace(/\/$/, "");
+
+    const amountInCents = Math.round(total * 100);
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      success_url: `${appUrl}/pages/confirmacao-pagamento.html?amount=${total.toFixed(2)}&currency=${currency}`,
+      cancel_url: `${appUrl}/pages/carrinho.html`,
+      line_items: [
+        {
+          price_data: {
+            currency,
+            product_data: { name: "Pedido Casa de Vinho" },
+            unit_amount: amountInCents,
+          },
+          quantity: 1,
+        },
+      ],
+    });
+
+    return res.status(200).json({ message: "Stripe Checkout iniciado", url: session.url });
+  } catch (err: unknown) {
+    let message = "Erro ao iniciar checkout com Stripe.";
+    if (err instanceof Error) {
+      message = err.message;
+    } else if (typeof err === "string") {
+      message = err;
+    }
+    return res.status(500).json({ message });
+  }
+};

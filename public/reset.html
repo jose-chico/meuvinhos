@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Redefinir Senha</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="card">
+    <h2 style="text-align:center; color:#065f46;">Redefinir Senha</h2>
+
+    <form id="resetForm" class="block-card">
+      <div class="form-grid">
+        <label class="input-group">
+          <span>Token de redefinição</span>
+          <input class="input-control" type="text" id="token" required />
+        </label>
+
+        <label class="input-group">
+          <span>Nova senha</span>
+          <input class="input-control" type="password" id="novaSenha" required />
+        </label>
+      </div>
+
+      <button class="btn-primary" type="submit" style="margin-top:1rem;">
+        Redefinir Senha
+      </button>
+
+      <div id="msg" class="form-msg"></div>
+    </form>
+
+    <div style="text-align:center; font-size:.8rem; color:#475569;">
+      <a href="index.html" style="color:#10b981;">Voltar ao login</a>
+    </div>
+  </div>
+
+  <script src="js/reset.js"></script>
+</body>
+</html>

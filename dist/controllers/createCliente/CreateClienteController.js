@@ -3,10 +3,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateClienteController = void 0;
 const client_1 = require("../../database/client");
 const zod_1 = require("zod");
-// Validação com Zod
+// Validação com Zod - Alinhado ao schema Prisma
 const clienteSchema = zod_1.z.object({
-    consumidor: zod_1.z.string().min(1, "O campo consumidor é obrigatório."),
-    nunerro: zod_1.z.string().min(1, "O campo nunerro é obrigatório."),
+    nome: zod_1.z.string().min(1, "O campo nome é obrigatório."),
+    endereco: zod_1.z.string().min(1, "O campo endereco é obrigatório."),
     datass: zod_1.z.string().min(1, "O campo datass é obrigatório."),
 });
 const CreateClienteController = async (req, res) => {
@@ -14,11 +14,11 @@ const CreateClienteController = async (req, res) => {
         if (!req.userId) {
             return res.status(401).json({ message: "Não autorizado" });
         }
-        const { consumidor, nunerro, datass } = clienteSchema.parse(req.body);
+        const { nome, endereco, datass } = clienteSchema.parse(req.body);
         const cliente = await client_1.prisma.cliente.create({
             data: {
-                consumidor,
-                nunerro,
+                nome,
+                endereco,
                 datass,
                 usuarioId: Number(req.userId),
             },

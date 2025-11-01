@@ -4,19 +4,19 @@ exports.DeletarClienteController = void 0;
 const client_1 = require("../../database/client");
 const zod_1 = require("zod");
 const paramsSchema = zod_1.z.object({
-    consumidor: zod_1.z.string().min(1, "consumidor é obrigatório"),
+    nome: zod_1.z.string().min(1, "nome é obrigatório"),
 });
 const DeletarClienteController = async (req, res) => {
     try {
         if (!req.userId) {
             return res.status(401).json({ message: "Não autorizado" });
         }
-        const { consumidor } = paramsSchema.parse(req.params);
+        const { nome } = paramsSchema.parse(req.params);
         const clienteExiste = await client_1.prisma.cliente.findFirst({
-            where: { consumidor: String(consumidor), usuarioId: Number(req.userId) },
+            where: { nome: String(nome), usuarioId: Number(req.userId) },
         });
         if (!clienteExiste) {
-            return res.status(404).json({ message: "Consumidor não encontrado." });
+            return res.status(404).json({ message: "Cliente não encontrado." });
         }
         const cliente = await client_1.prisma.cliente.delete({
             where: { id: clienteExiste.id },

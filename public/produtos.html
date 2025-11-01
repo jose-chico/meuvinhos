@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Produtos</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="dashboard-wrapper">
+    <!-- TOPO -->
+    <div class="topbar">
+      <div class="top-left">
+        <h2>Gestão de Produtos</h2>
+        <div class="small-text">Área protegida · Token JWT</div>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="nav-btn" onclick="window.location.href='dashboard.html'">Clientes</button>
+        <button class="nav-btn active" onclick="window.location.href='produtos.html'">Produtos</button>
+        <button class="nav-btn" id="logout">Sair</button>
+      </div>
+    </div>
+
+    <!-- CADASTRAR PRODUTO -->
+    <form id="createProdutoForm" class="block-card">
+      <div class="block-header">
+        <span>Cadastrar produto</span>
+        <small>Informações principais</small>
+      </div>
+
+      <div class="form-grid">
+        <label class="input-group">
+          <span>Nome</span>
+          <input class="input-control" type="text" id="nome" required />
+        </label>
+
+        <label class="input-group">
+          <span>Produto</span>
+          <input class="input-control" type="text" id="produto" required />
+        </label>
+
+        <label class="input-group">
+          <span>Estoque</span>
+          <input class="input-control" type="number" id="estoque" min="0" required />
+        </label>
+
+        <label class="input-group">
+          <span>País</span>
+          <input class="input-control" type="text" id="pais" required />
+        </label>
+
+        <label class="input-group">
+          <span>Região</span>
+          <input class="input-control" type="text" id="regiao" required />
+        </label>
+
+        <label class="input-group">
+          <span>Safra</span>
+          <input class="input-control" type="text" id="safra" required />
+        </label>
+
+        <label class="input-group">
+          <span>Tipo</span>
+          <input class="input-control" type="text" id="tipo" required />
+        </label>
+
+        <label class="input-group">
+          <span>Garrafa</span>
+          <input class="input-control" type="text" id="garrafa" required />
+        </label>
+
+        <label class="input-group">
+          <span>Teor</span>
+          <input class="input-control" type="text" id="teor" required />
+        </label>
+
+        <label class="input-group">
+          <span>Valor (R$)</span>
+          <input class="input-control" type="number" id="valor" min="0" step="0.01" required />
+        </label>
+
+        <label class="input-group">
+          <span>Harmonização</span>
+          <input class="input-control" type="text" id="harmonizacao" />
+        </label>
+
+        <label class="input-group">
+          <span>Descrição</span>
+          <textarea class="input-control" id="descricao" rows="2" required></textarea>
+        </label>
+
+        <label class="input-group">
+          <span>URL da Imagem</span>
+          <input class="input-control" type="url" id="imagem" required />
+        </label>
+      </div>
+
+      <div class="check-row">
+        <input type="checkbox" id="desconto" />
+        <label for="desconto">Produto em desconto</label>
+      </div>
+
+      <button class="btn-primary" type="submit" style="margin-top:1rem;">
+        Cadastrar Produto
+      </button>
+
+      <div id="createProdutoMsg" class="form-msg"></div>
+    </form>
+
+    <!-- BUSCAR PRODUTO -->
+    <div class="block-card">
+      <div class="block-header">
+        <span>Buscar produto</span>
+        <small>Consulta rápida por nome</small>
+      </div>
+
+      <div class="search-row">
+        <input class="input-control" type="text" id="buscarNome" placeholder="Nome do produto" />
+        <button class="btn-light" id="buscarProdutoBtn" type="button">Buscar</button>
+      </div>
+
+      <div id="resultadoProduto" class="result-box"></div>
+      <div id="buscaProdutoMsg" class="busca-msg"></div>
+    </div>
+
+    <!-- LISTA DE PRODUTOS -->
+    <div class="block-card">
+      <div class="block-header">
+        <span>Lista de produtos</span>
+        <small>Estoque atual</small>
+      </div>
+
+      <div class="list-box">
+        <ul id="listaProdutos" class="item-list"></ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL EDITAR PRODUTO -->
+  <div class="modal-overlay" id="editProdutoModal">
+    <div class="modal">
+      <h3>Editar Produto</h3>
+      <form id="editProdutoForm">
+        <div class="form-grid">
+          <label class="input-group">
+            <span>Produto</span>
+            <input class="input-control" type="text" id="editProduto" />
+          </label>
+
+          <label class="input-group">
+            <span>Estoque</span>
+            <input class="input-control" type="number" id="editEstoque" min="0" />
+          </label>
+
+          <label class="input-group">
+            <span>País</span>
+            <input class="input-control" type="text" id="editPais" />
+          </label>
+
+          <label class="input-group">
+            <span>Região</span>
+            <input class="input-control" type="text" id="editRegiao" />
+          </label>
+
+          <label class="input-group">
+            <span>Safra</span>
+            <input class="input-control" type="text" id="editSafra" />
+          </label>
+
+          <label class="input-group">
+            <span>Tipo</span>
+            <input class="input-control" type="text" id="editTipo" />
+          </label>
+
+          <label class="input-group">
+            <span>Garrafa</span>
+            <input class="input-control" type="text" id="editGarrafa" />
+          </label>
+
+          <label class="input-group">
+            <span>Teor</span>
+            <input class="input-control" type="text" id="editTeor" />
+          </label>
+
+          <label class="input-group">
+            <span>Valor (R$)</span>
+            <input class="input-control" type="number" id="editValor" min="0" step="0.01" />
+          </label>
+
+          <label class="input-group">
+            <span>Harmonização</span>
+            <input class="input-control" type="text" id="editHarmonizacao" />
+          </label>
+
+          <label class="input-group">
+            <span>Descrição</span>
+            <textarea class="input-control" id="editDescricao" rows="2"></textarea>
+          </label>
+
+          <label class="input-group">
+            <span>URL Imagem</span>
+            <input class="input-control" type="url" id="editImagem" />
+          </label>
+
+          <div class="check-row">
+            <input type="checkbox" id="editDesconto" />
+            <label for="editDesconto">Produto em desconto</label>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn-primary" type="submit">Salvar</button>
+          <button class="btn-light" type="button" id="cancelEditProduto">Cancelar</button>
+        </div>
+      </form>
+      <div class="small-text">Só os campos alterados serão enviados no PUT.</div>
+    </div>
+  </div>
+
+  <script src="js/produtos.js"></script>
+</body>
+</html>

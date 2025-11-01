@@ -12,14 +12,38 @@ CREATE TABLE "Usuario" (
 -- CreateTable
 CREATE TABLE "Cliente" (
     "id" SERIAL NOT NULL,
-    "consumidor" TEXT NOT NULL,
-    "nunerro" TEXT NOT NULL,
+    "nome" TEXT NOT NULL,
+    "endereco" TEXT NOT NULL,
     "datass" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "usuarioId" INTEGER NOT NULL,
 
     CONSTRAINT "Cliente_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Produto" (
+    "id" SERIAL NOT NULL,
+    "nome" TEXT NOT NULL,
+    "produto" TEXT NOT NULL,
+    "estoque" INTEGER NOT NULL,
+    "pais" TEXT NOT NULL,
+    "regiao" TEXT NOT NULL,
+    "safra" TEXT NOT NULL,
+    "tipo" TEXT NOT NULL,
+    "garrafa" TEXT NOT NULL,
+    "teor" TEXT NOT NULL,
+    "valor" DOUBLE PRECISION NOT NULL,
+    "harmonizacao" TEXT,
+    "desconto" BOOLEAN NOT NULL DEFAULT false,
+    "descricao" TEXT NOT NULL,
+    "imagem" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "usuarioId" INTEGER NOT NULL,
+
+    CONSTRAINT "Produto_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -48,6 +72,9 @@ CREATE UNIQUE INDEX "PasswordResetToken_tokenHash_key" ON "PasswordResetToken"("
 
 -- AddForeignKey
 ALTER TABLE "Cliente" ADD CONSTRAINT "Cliente_usuarioId_fkey" FOREIGN KEY ("usuarioId") REFERENCES "Usuario"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Produto" ADD CONSTRAINT "Produto_usuarioId_fkey" FOREIGN KEY ("usuarioId") REFERENCES "Usuario"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "PasswordResetToken" ADD CONSTRAINT "PasswordResetToken_usuarioId_fkey" FOREIGN KEY ("usuarioId") REFERENCES "Usuario"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

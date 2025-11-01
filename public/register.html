@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Criar Conta</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="card">
+    <h2 style="text-align:center; color:#065f46; font-size:1.1rem; font-weight:600; margin-bottom:1rem;">
+      Criar Conta
+    </h2>
+
+    <form id="registerForm" class="block-card">
+      <div class="form-grid">
+        <label class="input-group">
+          <span>E-mail</span>
+          <input class="input-control" type="email" id="email" required />
+        </label>
+
+        <label class="input-group">
+          <span>Senha</span>
+          <input class="input-control" type="password" id="senha" required />
+        </label>
+      </div>
+
+      <button class="btn-primary" type="submit" style="margin-top:1rem;">
+        Cadastrar
+      </button>
+      <div id="msg" class="form-msg"></div>
+    </form>
+
+    <div style="text-align:center; font-size:.8rem; color:#475569;">
+      Já tem conta?
+      <a href="index.html" style="color:#10b981; font-weight:500;">Fazer Login</a>
+    </div>
+  </div>
+
+  <script src="js/auth.js"></script>
+</body>
+</html>

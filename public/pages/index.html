@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Casa de Vinho 🍷</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://kit.fontawesome.com/9e62b207e5.js" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div class="frete-bar">🚚 Frete grátis acima de R$ 199,00 Brasil inteiro</div>
+
+  <header class="topo">
+    <div class="topo-left">
+      
+      <a class="logo" href="#">🍷 Casa de Vinho</a>
+    </div>
+
+    <nav class="menu">
+      <a href="#">Início</a>
+      <div class="menu-item has-submenu">
+        <a href="#catalogo">Vinhos</a>
+        <div class="submenu">
+          <div class="submenu-column">
+            <div id="submenu-vinhos">
+              <!-- Nomes de vinhos cadastrados serão carregados dinamicamente -->
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="menu-item has-submenu">
+        <a href="#contato">Contato</a>
+        <div class="submenu">
+          <div class="submenu-column">
+            <div class="submenu-title">Canais (fake)</div>
+            <a href="#contato">WhatsApp: (11) 99999-0000</a>
+            <a href="#contato">E-mail: atendimento@fake.com.br</a>
+            <a href="#contato">Instagram: @casa_de_vinho</a>
+            <a href="#contato">Telefone: (11) 4002-8922</a>
+          </div>
+          <div class="submenu-column">
+            <div class="submenu-title">Horários</div>
+            <a href="#contato">Seg–Sex: 08h–22h</a>
+            <a href="#contato">Sáb: 09h–18h</a>
+            <a href="#contato">Dom: 10h–16h</a>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <div class="topo-right">
+      <button id="theme-toggle" class="btn-theme" title="Alternar tema">
+        <i class="fa-solid fa-moon"></i>
+      </button>
+      <div class="search-box">
+        <input id="search-input" type="text" placeholder="Buscar vinhos..." />
+        <button id="search-button" class="btn-search" title="Buscar"><i class="fa-solid fa-magnifying-glass"></i></button>
+      </div>
+      <button class="btn-cart" id="btnCart">
+        <i class="fa-solid fa-cart-shopping"></i>
+        <span class="cart-text">Carrinho</span>
+        <span class="cart-count">0</span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <section id="catalogo" class="produtos page-wrapper">
+      <div class="sec-header">
+        <div>
+          <h1>Seleção Especial</h1>
+          <p class="subtitulo">Rótulos mais pedidos pelos nossos clientes</p>
+        </div>
+        <button id="btnAtualizar" class="btn-atualizar">
+          <i class="fa-solid fa-rotate"></i> Atualizar catálogo
+        </button>
+      </div>
+
+      <div id="lista-produtos" class="lista-produtos"></div>
+    </section>
+
+    <section id="contato" class="contato page-wrapper">
+      <h2>Fale com a Adega</h2>
+      <p>📞 (11) 99999-0000</p>
+      <p>✉️ atendimento@adegabase.com.br</p>
+      <p>⏰ Atendimento: 08h às 22h</p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    © 2025 Casa de Vinho · Qualidade em cada taça 🍇
+  </footer>
+
+  <script src="script.js"></script>
+  <script src="tema.js"></script>
+</body>
+</html>

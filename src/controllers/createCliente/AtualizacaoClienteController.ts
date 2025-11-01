@@ -4,41 +4,52 @@ import { prisma } from "../../database/client";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
-const paramsSchema = z.object({
-	consumidor: z.string().min(1, "consumidor é obrigatório"),
-});
-
+// Validação com Zod - Alinhado ao schema Prisma
 const bodySchema = z
 	.object({
-		consumidor: z.string().min(1).optional(),
-		nunerro: z.string().min(1).optional(),
-		datass: z.string().min(1).optional(),
+		nome: z.string().optional(),
+		endereco: z.string().optional(),
+		datass: z.string().optional(),
 	})
-	.strict()
-	.refine((data) => Object.keys(data).length > 0, {
-		message: "Informe ao menos um campo para atualizar.",
+	.refine((data) => Object.values(data).some((value) => value !== undefined), {
+		message: "Pelo menos um campo deve ser fornecido para atualização.",
 	});
 
-export const AtualizacaoClienteController = async (req: Request, res: Response) => {
+const paramsSchema = z.object({
+	nome: z.string().min(1, "O parâmetro nome é obrigatório."),
+});
+
+type BodyType = z.infer<typeof bodySchema>;
+type ParamsType = z.infer<typeof paramsSchema>;
+
+export const AtualizacaoClienteController = async (
+	req: Request,
+	res: Response
+) => {
 	try {
 		if (!req.userId) {
 			return res.status(401).json({ message: "Não autorizado" });
 		}
 
-		const { consumidor } = paramsSchema.parse(req.params);
-		const data = bodySchema.parse(req.body);
+		const { nome }: ParamsType = paramsSchema.parse(req.params);
+		const body: BodyType = bodySchema.parse(req.body);
 
-		const clienteExiste = await prisma.cliente.findFirst({
-			where: { consumidor: String(consumidor), usuarioId: Number(req.userId) },
+		const cliente = await prisma.cliente.findFirst({
+			where: {
+				nome,
+				usuarioId: Number(req.userId),
+			},
 		});
 
-		if (!clienteExiste) {
-			return res.status(404).json({ message: "Consumidor não encontrado." });
+		if (!cliente) {
+			return res.status(404).json({ message: "Cliente não encontrado" });
 		}
 
 		const clienteAtualizado = await prisma.cliente.update({
-			where: { id: clienteExiste.id },
-			data,
+			where: {
+				id: cliente.id,
+			},
+			data: body,
 		});
 
 		return res.status(200).json({

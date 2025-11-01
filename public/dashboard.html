@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Clientes</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="dashboard-wrapper">
+    <!-- TOPO -->
+    <div class="topbar">
+      <div class="top-left">
+        <h2>Gestão de Clientes</h2>
+        <div class="small-text">Área protegida · Token JWT</div>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="nav-btn active" onclick="window.location.href='dashboard.html'">Clientes</button>
+        <button class="nav-btn" onclick="window.location.href='produtos.html'">Produtos</button>
+        <button class="nav-btn" id="logout">Sair</button>
+      </div>
+    </div>
+
+    <!-- CADASTRO DE CLIENTE -->
+    <form id="createClienteForm" class="block-card">
+      <div class="block-header">
+        <span>Cadastrar novo cliente</span>
+        <small>Preencha todos os campos</small>
+      </div>
+
+      <div class="form-grid">
+        <label class="input-group">
+          <span>Nome</span>
+          <input class="input-control" type="text" id="nome" required />
+        </label>
+
+        <label class="input-group">
+          <span>Endereço</span>
+          <input class="input-control" type="text" id="endereco" required />
+        </label>
+
+        <label class="input-group">
+          <span>Data</span>
+          <input class="input-control" type="text" id="datass" required />
+        </label>
+      </div>
+
+      <button class="btn-primary" type="submit" style="margin-top:1rem;">
+        Cadastrar Cliente
+      </button>
+
+      <div id="createClienteMsg" class="form-msg"></div>
+    </form>
+
+    <!-- BUSCAR CLIENTE -->
+    <div class="block-card">
+      <div class="block-header">
+        <span>Buscar cliente</span>
+        <small>Consulta rápida por nome</small>
+      </div>
+
+      <div class="search-row">
+        <input class="input-control" type="text" id="buscarNome" placeholder="Nome do cliente" />
+        <button class="btn-light" id="buscarBtn" type="button">Buscar</button>
+      </div>
+
+      <div id="resultadoBusca" class="result-box"></div>
+      <div id="buscaMsg" class="busca-msg"></div>
+    </div>
+
+    <!-- LISTA DE CLIENTES -->
+    <div class="block-card">
+      <div class="block-header">
+        <span>Lista de clientes</span>
+        <small>Seus clientes cadastrados</small>
+      </div>
+
+      <div class="list-box">
+        <ul id="listaClientes" class="item-list"></ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL EDITAR CLIENTE -->
+  <div class="modal-overlay" id="editClienteModal">
+    <div class="modal">
+      <h3>Editar Cliente</h3>
+      <form id="editClienteForm">
+        <div class="form-grid">
+          <label class="input-group">
+            <span>Nome</span>
+            <input class="input-control" type="text" id="editNome" />
+          </label>
+
+          <label class="input-group">
+            <span>Endereço</span>
+            <input class="input-control" type="text" id="editEndereco" />
+          </label>
+
+          <label class="input-group">
+            <span>Data</span>
+            <input class="input-control" type="text" id="editDatass" />
+          </label>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn-primary" type="submit">Salvar</button>
+          <button class="btn-light" type="button" id="cancelEditCliente">Cancelar</button>
+        </div>
+      </form>
+      <div class="small-text">Só os campos alterados serão enviados no PUT.</div>
+    </div>
+  </div>
+
+  <script src="js/clientes.js"></script>
+</body>
+</html>

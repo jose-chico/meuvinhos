@@ -7,10 +7,10 @@ const ListandoUmClienteController = async (req, res) => {
         if (!req.userId) {
             return res.status(401).json({ message: "Não autorizado" });
         }
-        const { consumidor } = req.params;
+        const { nome } = req.params;
         const cliente = await client_1.prisma.cliente.findFirst({
             where: {
-                consumidor: String(consumidor),
+                nome: String(nome),
                 usuarioId: Number(req.userId),
             },
         });

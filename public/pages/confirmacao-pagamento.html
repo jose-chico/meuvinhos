@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Confirmação de Pagamento - Casa de Vinho 🍷</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://kit.fontawesome.com/9e62b207e5.js" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div class="frete-bar">🚚 Frete grátis acima de R$ 199,00 Brasil inteiro</div>
+
+  <header class="topo">
+    <div class="topo-left">
+      <a class="logo" href="index.html">🍷 Casa de Vinho</a>
+    </div>
+    <div class="topo-right">
+      <button id="theme-toggle" class="btn-theme" title="Alternar tema">
+        <i class="fa-solid fa-moon"></i>
+      </button>
+    </div>
+  </header>
+
+  <main class="checkout-page">
+    <div class="checkout-card">
+      <h1><i class="fa-solid fa-check-circle" style="color: #22c55e;"></i> Pagamento Confirmado!</h1>
+      <div style="text-align: center; margin: 2rem 0;">
+        <p><strong>Valor:</strong> <span id="valor-pagamento">R$ 0,00</span></p>
+        <p style="color: #aaa; margin-top: 1rem;">
+          Esta é uma simulação de pagamento.<br>
+          Em produção, aqui seria integrado com um gateway real.
+        </p>
+      </div>
+      
+      <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem;">
+        <button id="btn-voltar-inicio" class="checkout-btn-big">
+          <i class="fa-solid fa-home"></i> Voltar ao início
+        </button>
+        <button id="btn-novo-pedido" class="checkout-btn-big" style="background: var(--accent-contrast);">
+          <i class="fa-solid fa-cart-shopping"></i> Novo pedido
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    © 2025 Casa de Vinho · Qualidade em cada taça 🍇
+  </footer>
+
+  <script>
+    // Extrai e formata valor da URL
+    const params = new URLSearchParams(window.location.search);
+    const amountParam = params.get('amount');
+    const currency = params.get('currency') || 'BRL';
+    const amountNum = parseFloat(String(amountParam || '0'));
+    const formatted = new Intl.NumberFormat('pt-BR', { style: 'currency', currency }).format(Number.isFinite(amountNum) ? amountNum : 0);
+    document.getElementById('valor-pagamento').textContent = formatted;
+
+    // Ações dos botões
+    document.getElementById('btn-voltar-inicio').addEventListener('click', () => {
+      window.location.href = 'index.html';
+    });
+    document.getElementById('btn-novo-pedido').addEventListener('click', () => {
+      window.location.href = 'index.html';
+    });
+  </script>
+  <script src="tema.js"></script>
+</body>
+</html>

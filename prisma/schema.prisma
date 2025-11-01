@@ -10,39 +10,62 @@ datasource db {
 }
 
 model Usuario {
-  id           Int       @id @default(autoincrement())
-  email        String    @unique
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
   passwordHash String
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  clientes     Cliente[]
-  resetTokens  PasswordResetToken[] // ← relação com tokens de reset
+  clientes    Cliente[]
+  produtos    Produto[] // ← relação com produtos
+  resetTokens PasswordResetToken[] // ← relação com tokens de reset
 }
 
 model Cliente {
-  id         Int       @id @default(autoincrement())
-  consumidor String
-  nunerro    String
+  id         Int      @id @default(autoincrement())
+  nome String
+  endereco    String
   datass     String
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  usuarioId  Int
-  usuario    Usuario   @relation(fields: [usuarioId], references: [id])
+  usuarioId Int
+  usuario   Usuario @relation(fields: [usuarioId], references: [id])
+}
+
+model Produto {
+  id            Int      @id @default(autoincrement())
+  nome          String
+  produto       String
+  estoque       Int
+  pais          String
+  regiao        String
+  safra         String
+  tipo          String
+  garrafa       String
+  teor          String
+  valor         Float
+  harmonizacao  String?
+  desconto      Boolean  @default(false)
+  descricao     String
+  imagem        String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  usuarioId     Int
+  usuario       Usuario  @relation(fields: [usuarioId], references: [id])
 }
 
 model PasswordResetToken {
-  id         Int      @id @default(autoincrement())
-  tokenHash  String
-  expiresAt  DateTime
-  usedAt     DateTime?
-  createdAt  DateTime @default(now())
+  id        Int       @id @default(autoincrement())
+  tokenHash String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
 
-  usuarioId  Int
-  usuario    Usuario  @relation(fields: [usuarioId], references: [id])
+  usuarioId Int
+  usuario   Usuario @relation(fields: [usuarioId], references: [id])
 
+  @@unique([tokenHash])
   @@index([usuarioId])
   @@index([expiresAt])
-  @@unique([tokenHash])
 }

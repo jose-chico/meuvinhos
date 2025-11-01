@@ -4,7 +4,7 @@ import { prisma } from "../../database/client";
 import { z } from "zod";
 
 const paramsSchema = z.object({
-	consumidor: z.string().min(1, "consumidor é obrigatório"),
+	nome: z.string().min(1, "nome é obrigatório"),
 });
 
 export const DeletarClienteController = async (req: Request, res: Response) => {
@@ -13,14 +13,14 @@ export const DeletarClienteController = async (req: Request, res: Response) => {
 			return res.status(401).json({ message: "Não autorizado" });
 		}
 
-		const { consumidor } = paramsSchema.parse(req.params);
+		const { nome } = paramsSchema.parse(req.params);
 
 		const clienteExiste = await prisma.cliente.findFirst({
-			where: { consumidor: String(consumidor), usuarioId: Number(req.userId) },
+			where: { nome: String(nome), usuarioId: Number(req.userId) },
 		});
 
 		if (!clienteExiste) {
-			return res.status(404).json({ message: "Consumidor não encontrado." });
+			return res.status(404).json({ message: "Cliente não encontrado." });
 		}
 
 		const cliente = await prisma.cliente.delete({

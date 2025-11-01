@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Recuperar Senha</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="card">
+    <h2 style="text-align:center; color:#065f46;">Recuperar Senha</h2>
+
+    <form id="forgotForm" class="block-card">
+      <div class="form-grid">
+        <label class="input-group">
+          <span>E-mail cadastrado</span>
+          <input class="input-control" type="email" id="email" required />
+        </label>
+      </div>
+
+      <button class="btn-primary" type="submit" style="margin-top:1rem;">
+        Enviar link de redefinição
+      </button>
+
+      <div id="msg" class="form-msg"></div>
+    </form>
+
+    <div style="text-align:center; font-size:.8rem; color:#475569;">
+      <a href="index.html" style="color:#10b981;">Voltar ao login</a>
+    </div>
+  </div>
+
+  <script src="js/forgot.js"></script>
+</body>
+</html>
