@@ -15,6 +15,7 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
       return res.status(400).json({
         message: "Chave live detectada em ambiente não-produtivo. Use sk_test_... localmente ou defina NODE_ENV=production no servidor."
       });
+      console.log('[Checkout GET] sessão criada', { id: session.id, payment_method_types: session.payment_method_types, currency: session.currency });
     }
 
     const stripe = new Stripe(secretKey);
@@ -126,6 +127,7 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
       return res.status(400).json({
         message: "Chave live detectada em ambiente não-produtivo. Use sk_test_... localmente ou defina NODE_ENV=production no servidor."
       });
+      console.log('[Checkout POST] sessão criada', { id: session.id, payment_method_types: session.payment_method_types, currency: session.currency });
     }
 
     const stripe = new Stripe(secretKey);
