@@ -36,7 +36,8 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
     const host = req.get("host") || "localhost:8000";
     const origin = `${protocol}://${host}`;
     const appUrl = (process.env.APP_URL || origin).replace(/\/$/, "");
-    const successUrl = (process.env.CHECKOUT_SUCCESS_URL || `${appUrl}/pages/index.html`).replace(/\/$/, "");
+    const successUrl = (process.env.CHECKOUT_SUCCESS_URL || `${appUrl}/`).replace(/\/$/, "");
+    const cancelUrl = (process.env.CHECKOUT_CANCEL_URL || `${appUrl}/pages/carrinho.html`).replace(/\/$/, "");
 
     const amountInCents = Math.round(total * 100);
     const boletoExpiresDaysRaw = parseInt(String(process.env.BOLETO_EXPIRES_AFTER_DAYS ?? '3'), 10);
@@ -59,7 +60,7 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
         payment_method_types: paymentMethods as any,
         locale: "pt-BR",
         success_url: successUrl,
-        cancel_url: `${appUrl}/pages/carrinho.html`,
+        cancel_url: cancelUrl,
         payment_method_options: paymentMethodOptions,
         line_items: [
           {
@@ -84,7 +85,7 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
           payment_method_types: ["card"],
           locale: "pt-BR",
           success_url: successUrl,
-          cancel_url: `${appUrl}/pages/carrinho.html`,
+          cancel_url: cancelUrl,
           line_items: [
             {
               price_data: {
@@ -150,7 +151,8 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
     const host = req.get("host") || "localhost:8000";
     const origin = `${protocol}://${host}`;
     const appUrl = (process.env.APP_URL || origin).replace(/\/$/, "");
-    const successUrl = (process.env.CHECKOUT_SUCCESS_URL || `${appUrl}/pages/index.html`).replace(/\/$/, "");
+    const successUrl = (process.env.CHECKOUT_SUCCESS_URL || `${appUrl}/`).replace(/\/$/, "");
+    const cancelUrl = (process.env.CHECKOUT_CANCEL_URL || `${appUrl}/pages/carrinho.html`).replace(/\/$/, "");
 
     const amountInCents = Math.round(total * 100);
     const boletoExpiresDaysRaw = parseInt(String(process.env.BOLETO_EXPIRES_AFTER_DAYS ?? '3'), 10);
@@ -174,7 +176,7 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
         payment_method_types: paymentMethods as any,
         locale: "pt-BR",
         success_url: successUrl,
-        cancel_url: `${appUrl}/pages/carrinho.html`,
+        cancel_url: cancelUrl,
         payment_method_options: paymentMethodOptions,
         metadata: {
           products: JSON.stringify(products),
@@ -202,7 +204,7 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
           payment_method_types: ["card"],
           locale: "pt-BR",
           success_url: successUrl,
-          cancel_url: `${appUrl}/pages/carrinho.html`,
+          cancel_url: cancelUrl,
           metadata: {
             products: JSON.stringify(products),
             total: total.toString(),
