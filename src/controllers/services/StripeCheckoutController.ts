@@ -18,6 +18,9 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
     }
 
     const stripe = new Stripe(secretKey);
+    // Flag ENABLE_PIX controla oferta de Pix: "true" habilita, "false" desabilita, default (auto) tenta com fallback
+    const enablePixEnv = String(process.env.ENABLE_PIX ?? 'auto').toLowerCase();
+    const allowPix = enablePixEnv === 'true' ? true : enablePixEnv === 'false' ? false : true;
 
     const totalStr = String(req.query.total ?? "0");
     const total = parseFloat(totalStr);
@@ -35,25 +38,54 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
     const amountInCents = Math.round(total * 100);
     const currency = (String(req.query.currency || "BRL").toUpperCase());
 
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      // Habilita métodos de pagamento: cartão e Pix
-      payment_method_types: ["card", "pix"],
-      // Define o locale para PT-BR na página de checkout
-      locale: "pt-BR",
-      success_url: `${appUrl}/pages/confirmacao-pagamento.html?amount=${total.toFixed(2)}&currency=${currency}`,
-      cancel_url: `${appUrl}/pages/carrinho.html`,
-      line_items: [
-        {
-          price_data: {
-            currency,
-            product_data: { name: "Pedido Casa de Vinho" },
-            unit_amount: amountInCents,
+    console.log('[Checkout GET] total, currency, allowPix, mode', { total, currency, allowPix, mode: isLiveKey ? 'live' : 'test' });
+    let session;
+    try {
+      // Tentativa com cartão + Pix
+      session = await stripe.checkout.sessions.create({
+        mode: "payment",
+        payment_method_types: allowPix ? ["card", "pix"] : ["card"],
+        locale: "pt-BR",
+        success_url: `${appUrl}/pages/confirmacao-pagamento.html?amount=${total.toFixed(2)}&currency=${currency}`,
+        cancel_url: `${appUrl}/pages/carrinho.html`,
+        line_items: [
+          {
+            price_data: {
+              currency,
+              product_data: { name: "Pedido Casa de Vinho" },
+              unit_amount: amountInCents,
+            },
+            quantity: 1,
           },
-          quantity: 1,
-        },
-      ],
-    });
+        ],
+      });
+    } catch (e: any) {
+      const msg = String(e?.message || "");
+      // Fallback: se Pix não estiver habilitado na conta, tenta apenas cartão
+      if (allowPix && (msg.toLowerCase().includes("pix is invalid") || msg.toLowerCase().includes("payment method type provided: pix"))) {
+        console.warn("Pix não habilitado na Stripe. Fazendo fallback para 'card' apenas.");
+        session = await stripe.checkout.sessions.create({
+          mode: "payment",
+          payment_method_types: ["card"],
+          locale: "pt-BR",
+          success_url: `${appUrl}/pages/confirmacao-pagamento.html?amount=${total.toFixed(2)}&currency=${currency}`,
+          cancel_url: `${appUrl}/pages/carrinho.html`,
+          line_items: [
+            {
+              price_data: {
+                currency,
+                product_data: { name: "Pedido Casa de Vinho" },
+                unit_amount: amountInCents,
+              },
+              quantity: 1,
+            },
+          ],
+        });
+      } else {
+        console.error('[Checkout GET] erro ao criar sessão', msg);
+        throw e;
+      }
+    }
 
     return res.status(200).json({ message: "Stripe Checkout iniciado", url: session.url });
   } catch (err: unknown) {
@@ -83,6 +115,9 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
     }
 
     const stripe = new Stripe(secretKey);
+    // Flag ENABLE_PIX controla oferta de Pix: "true" habilita, "false" desabilita, default (auto) tenta com fallback
+    const enablePixEnv = String(process.env.ENABLE_PIX ?? 'auto').toLowerCase();
+    const allowPix = enablePixEnv === 'true' ? true : enablePixEnv === 'false' ? false : true;
 
     const total = Number(req.body?.total);
     if (!Number.isFinite(total) || total <= 0) {
@@ -103,27 +138,60 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
     // Extrair produtos do carrinho (se enviados)
     const products = req.body?.products || [];
     
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      payment_method_types: ["card", "pix"],
-      locale: "pt-BR",
-      success_url: `${appUrl}/pages/confirmacao-pagamento.html?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${appUrl}/pages/carrinho.html`,
-      metadata: {
-        products: JSON.stringify(products),
-        total: total.toString(),
-      },
-      line_items: [
-        {
-          price_data: {
-            currency,
-            product_data: { name: "Pedido Casa de Vinho" },
-            unit_amount: amountInCents,
-          },
-          quantity: 1,
+    console.log('[Checkout POST] total, currency, allowPix, mode', { total, currency, allowPix, mode: isLiveKey ? 'live' : 'test' });
+    let session;
+    try {
+      session = await stripe.checkout.sessions.create({
+        mode: "payment",
+        payment_method_types: allowPix ? ["card", "pix"] : ["card"],
+        locale: "pt-BR",
+        success_url: `${appUrl}/pages/confirmacao-pagamento.html?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${appUrl}/pages/carrinho.html`,
+        metadata: {
+          products: JSON.stringify(products),
+          total: total.toString(),
         },
-      ],
-    });
+        line_items: [
+          {
+            price_data: {
+              currency,
+              product_data: { name: "Pedido Casa de Vinho" },
+              unit_amount: amountInCents,
+            },
+            quantity: 1,
+          },
+        ],
+      });
+    } catch (e: any) {
+      const msg = String(e?.message || "");
+      if (allowPix && (msg.toLowerCase().includes("pix is invalid") || msg.toLowerCase().includes("payment method type provided: pix"))) {
+        console.warn("Pix não habilitado na Stripe. Fazendo fallback para 'card' apenas.");
+        session = await stripe.checkout.sessions.create({
+          mode: "payment",
+          payment_method_types: ["card"],
+          locale: "pt-BR",
+          success_url: `${appUrl}/pages/confirmacao-pagamento.html?session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `${appUrl}/pages/carrinho.html`,
+          metadata: {
+            products: JSON.stringify(products),
+            total: total.toString(),
+          },
+          line_items: [
+            {
+              price_data: {
+                currency,
+                product_data: { name: "Pedido Casa de Vinho" },
+                unit_amount: amountInCents,
+              },
+              quantity: 1,
+            },
+          ],
+        });
+      } else {
+        console.error('[Checkout POST] erro ao criar sessão', msg);
+        throw e;
+      }
+    }
 
     return res.status(200).json({ message: "Stripe Checkout iniciado", url: session.url });
   } catch (err: unknown) {
