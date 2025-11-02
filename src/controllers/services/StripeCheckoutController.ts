@@ -36,6 +36,7 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
     const host = req.get("host") || "localhost:8000";
     const origin = `${protocol}://${host}`;
     const appUrl = (process.env.APP_URL || origin).replace(/\/$/, "");
+    const successUrl = (process.env.CHECKOUT_SUCCESS_URL || `${appUrl}/pages/index.html`).replace(/\/$/, "");
 
     const amountInCents = Math.round(total * 100);
     const boletoExpiresDaysRaw = parseInt(String(process.env.BOLETO_EXPIRES_AFTER_DAYS ?? '3'), 10);
@@ -57,7 +58,7 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
         mode: "payment",
         payment_method_types: paymentMethods as any,
         locale: "pt-BR",
-        success_url: `${appUrl}/pages/confirmacao-pagamento.html?session_id={CHECKOUT_SESSION_ID}`,
+        success_url: successUrl,
         cancel_url: `${appUrl}/pages/carrinho.html`,
         payment_method_options: paymentMethodOptions,
         line_items: [
@@ -82,7 +83,7 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
           mode: "payment",
           payment_method_types: ["card"],
           locale: "pt-BR",
-          success_url: `${appUrl}/pages/confirmacao-pagamento.html?session_id={CHECKOUT_SESSION_ID}`,
+          success_url: successUrl,
           cancel_url: `${appUrl}/pages/carrinho.html`,
           line_items: [
             {
@@ -149,6 +150,7 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
     const host = req.get("host") || "localhost:8000";
     const origin = `${protocol}://${host}`;
     const appUrl = (process.env.APP_URL || origin).replace(/\/$/, "");
+    const successUrl = (process.env.CHECKOUT_SUCCESS_URL || `${appUrl}/pages/index.html`).replace(/\/$/, "");
 
     const amountInCents = Math.round(total * 100);
     const boletoExpiresDaysRaw = parseInt(String(process.env.BOLETO_EXPIRES_AFTER_DAYS ?? '3'), 10);
@@ -171,7 +173,7 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
         mode: "payment",
         payment_method_types: paymentMethods as any,
         locale: "pt-BR",
-        success_url: `${appUrl}/pages/confirmacao-pagamento.html?session_id={CHECKOUT_SESSION_ID}`,
+        success_url: successUrl,
         cancel_url: `${appUrl}/pages/carrinho.html`,
         payment_method_options: paymentMethodOptions,
         metadata: {
@@ -199,7 +201,7 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
           mode: "payment",
           payment_method_types: ["card"],
           locale: "pt-BR",
-          success_url: `${appUrl}/pages/confirmacao-pagamento.html?session_id={CHECKOUT_SESSION_ID}`,
+          success_url: successUrl,
           cancel_url: `${appUrl}/pages/carrinho.html`,
           metadata: {
             products: JSON.stringify(products),
