@@ -33,9 +33,11 @@ document.addEventListener("DOMContentLoaded", () => {
 		carrinho.forEach((produto, index) => {
 			const item = document.createElement("div");
 			item.className = "checkout-item";
+			const precoNum = Number(produto.preco) || 0;
+			const precoFmt = precoNum.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 			item.innerHTML = `
         <div class="item-nome">${produto.nome}</div>
-        <div class="item-preco">R$ ${produto.preco}</div>
+        <div class="item-preco">${precoFmt}</div>
         <button class="btn-remove">Remover</button>
       `;
 			item.querySelector(".btn-remove").addEventListener("click", () => {
@@ -44,9 +46,9 @@ document.addEventListener("DOMContentLoaded", () => {
 				renderizarCarrinho();
 			});
 			lista.appendChild(item);
-			total += parseFloat(produto.preco);
+			total += precoNum;
 		});
-		totalEl.textContent = `Total: R$ ${total.toFixed(2)}`;
+		totalEl.textContent = `Total: ${total.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`;
 		btnFinalizar.disabled = false;
 		btnFinalizar.textContent = "Finalizar compra";
 	}
@@ -57,8 +59,8 @@ document.addEventListener("DOMContentLoaded", () => {
             msg.textContent = "Adicione produtos antes de finalizar a compra.";
             return;
         }
-        // Calcula total atual
-        const total = carrinho.reduce((acc, p) => acc + parseFloat(p.preco), 0);
+        // Calcula total atual (preço numérico)
+        const total = carrinho.reduce((acc, p) => acc + (Number(p.preco) || 0), 0);
 
         msg.style.color = "#2563eb"; // azul
         msg.textContent = "Iniciando pagamento...";
@@ -67,10 +69,10 @@ document.addEventListener("DOMContentLoaded", () => {
             const res = await fetch(`${API_URL}/checkout/stripe`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ 
-                    total: Number(total.toFixed(2)), 
+                body: JSON.stringify({
+                    total: Number(total.toFixed(2)),
                     currency: "BRL",
-                    products: carrinho 
+                    products: carrinho
                 })
             });
             const data = await res.json();

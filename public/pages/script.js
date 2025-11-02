@@ -126,11 +126,24 @@ document.addEventListener("DOMContentLoaded", () => {
 				return;
 			}
 
+			// 🔹 Util para normalizar valores em BRL (suporta "99,90")
+			function parsePrecoBRL(valor) {
+				if (typeof valor === "number") return valor;
+				if (typeof valor === "string") {
+					const cleaned = valor
+						.replace(/[^\d.,-]/g, "")
+						.replace(/\.(?=\d{3}(\D|$))/g, "")
+						.replace(",", ".");
+					const num = parseFloat(cleaned);
+					return Number.isFinite(num) ? num : 0;
+				}
+				return 0;
+			}
+
 			// 🔹 Renderiza os produtos
 			produtos.forEach((produto) => {
-				const precoFinal = produto.desconto
-					? (Number(produto.valor) || 0) * 0.8
-					: (Number(produto.valor) || 0);
+				const baseValor = parsePrecoBRL(produto.valor);
+				const precoFinal = produto.desconto ? baseValor * 0.8 : baseValor;
 
 				const parcelaValor = precoFinal / 3;
 				const parcelaFormatada = parcelaValor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -162,7 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
 					adicionarAoCarrinho({
 						id: produto.id,
 						nome: produto.nome,
-						preco: precoFinal.toFixed(2),
+						preco: Number(precoFinal.toFixed(2)),
 						imagem: produto.imagem,
 					});
 				});

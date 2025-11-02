@@ -1,6 +1,20 @@
 import { Request, Response } from "express";
 import Stripe from "stripe";
 
+// Util: tenta converter valores em BRL (suporta strings "99,90")
+function parsePrice(input: any): number {
+  if (typeof input === 'number') return input;
+  if (typeof input === 'string') {
+    const cleaned = input
+      .replace(/[^\d.,-]/g, '')
+      .replace(/\.(?=\d{3}(\D|$))/g, '')
+      .replace(',', '.');
+    const num = parseFloat(cleaned);
+    return Number.isFinite(num) ? num : 0;
+  }
+  return 0;
+}
+
 export const StripeCheckoutController = async (req: Request, res: Response) => {
   try {
     const secretKey = process.env.STRIPE_SECRET_KEY;
@@ -138,9 +152,17 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
     const allowPix = enablePixEnv === 'true' ? true : enablePixEnv === 'false' ? false : true;
     const allowBoleto = enableBoletoEnv === 'true' ? true : enableBoletoEnv === 'false' ? false : true;
 
-    const total = Number(req.body?.total);
+    // Total enviado pelo cliente; se inválido, tenta calcular a partir dos produtos
+    let total = Number(req.body?.total);
+    const rawProducts = req.body?.products;
+    const products = Array.isArray(rawProducts) ? rawProducts : [];
     if (!Number.isFinite(total) || total <= 0) {
-      return res.status(400).json({ message: "Total inválido para checkout." });
+      const sumFromProducts = products.reduce((acc: number, p: any) => acc + parsePrice(p?.preco ?? p?.valor), 0);
+      if (sumFromProducts > 0) {
+        total = Number(sumFromProducts.toFixed(2));
+      } else {
+        return res.status(400).json({ message: "Total inválido para checkout." });
+      }
     }
 
     const currency = String(req.body?.currency || "BRL").toUpperCase();
@@ -159,7 +181,7 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
     const boletoExpiresDays = Number.isFinite(boletoExpiresDaysRaw) && boletoExpiresDaysRaw > 0 ? boletoExpiresDaysRaw : 3;
 
     // Extrair produtos do carrinho (se enviados)
-    const products = req.body?.products || [];
+    // já normalizado acima
     
     console.log('[Checkout POST] total, currency, allowPix, allowBoleto, boletoExpiresDays, mode', { total, currency, allowPix, allowBoleto, boletoExpiresDays, mode: isLiveKey ? 'live' : 'test' });
     let session;
