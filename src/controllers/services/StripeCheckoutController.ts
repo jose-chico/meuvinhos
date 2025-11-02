@@ -18,9 +18,11 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
     }
 
     const stripe = new Stripe(secretKey);
-    // Flag ENABLE_PIX controla oferta de Pix: "true" habilita, "false" desabilita, default (auto) tenta com fallback
+    // Flags de métodos: Pix e Boleto (true/false/auto)
     const enablePixEnv = String(process.env.ENABLE_PIX ?? 'auto').toLowerCase();
+    const enableBoletoEnv = String(process.env.ENABLE_BOLETO ?? 'auto').toLowerCase();
     const allowPix = enablePixEnv === 'true' ? true : enablePixEnv === 'false' ? false : true;
+    const allowBoleto = enableBoletoEnv === 'true' ? true : enableBoletoEnv === 'false' ? false : true;
 
     const totalStr = String(req.query.total ?? "0");
     const total = parseFloat(totalStr);
@@ -36,18 +38,28 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
     const appUrl = (process.env.APP_URL || origin).replace(/\/$/, "");
 
     const amountInCents = Math.round(total * 100);
+    const boletoExpiresDaysRaw = parseInt(String(process.env.BOLETO_EXPIRES_AFTER_DAYS ?? '3'), 10);
+    const boletoExpiresDays = Number.isFinite(boletoExpiresDaysRaw) && boletoExpiresDaysRaw > 0 ? boletoExpiresDaysRaw : 3;
     const currency = (String(req.query.currency || "BRL").toUpperCase());
 
-    console.log('[Checkout GET] total, currency, allowPix, mode', { total, currency, allowPix, mode: isLiveKey ? 'live' : 'test' });
+    console.log('[Checkout GET] total, currency, allowPix, allowBoleto, boletoExpiresDays, mode', { total, currency, allowPix, allowBoleto, boletoExpiresDays, mode: isLiveKey ? 'live' : 'test' });
     let session;
     try {
-      // Tentativa com cartão + Pix
+      // Métodos solicitados: sempre 'card', adiciona Pix/Boleto se permitido e BRL
+      const paymentMethods: string[] = ['card'];
+      if (currency === 'BRL' && allowPix) paymentMethods.push('pix');
+      if (currency === 'BRL' && allowBoleto) paymentMethods.push('boleto');
+      const paymentIntentData: any = {};
+      if (paymentMethods.includes('boleto')) {
+        paymentIntentData.payment_method_options = { boleto: { expires_after_days: boletoExpiresDays } };
+      }
       session = await stripe.checkout.sessions.create({
         mode: "payment",
-        payment_method_types: allowPix ? ["card", "pix"] : ["card"],
+        payment_method_types: paymentMethods as any,
         locale: "pt-BR",
         success_url: `${appUrl}/pages/confirmacao-pagamento.html?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${appUrl}/pages/carrinho.html`,
+        payment_intent_data: paymentIntentData,
         line_items: [
           {
             price_data: {
@@ -61,9 +73,11 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
       });
     } catch (e: any) {
       const msg = String(e?.message || "");
-      // Fallback: se Pix não estiver habilitado na conta, tenta apenas cartão
-      if (allowPix && (msg.toLowerCase().includes("pix is invalid") || msg.toLowerCase().includes("payment method type provided: pix"))) {
-        console.warn("Pix não habilitado na Stripe. Fazendo fallback para 'card' apenas.");
+      // Fallback: se Pix/Boleto não estiverem habilitados na conta, tenta apenas cartão
+      const pixInvalid = msg.toLowerCase().includes("pix is invalid") || msg.toLowerCase().includes("payment method type provided: pix");
+      const boletoInvalid = msg.toLowerCase().includes("boleto is invalid") || msg.toLowerCase().includes("payment method type provided: boleto");
+      if ((allowPix && pixInvalid) || (allowBoleto && boletoInvalid)) {
+        console.warn("Pix/Boleto não habilitado(s) na Stripe. Fazendo fallback para 'card' apenas.");
         session = await stripe.checkout.sessions.create({
           mode: "payment",
           payment_method_types: ["card"],
@@ -115,9 +129,11 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
     }
 
     const stripe = new Stripe(secretKey);
-    // Flag ENABLE_PIX controla oferta de Pix: "true" habilita, "false" desabilita, default (auto) tenta com fallback
+    // Flags de métodos: Pix e Boleto (true/false/auto)
     const enablePixEnv = String(process.env.ENABLE_PIX ?? 'auto').toLowerCase();
+    const enableBoletoEnv = String(process.env.ENABLE_BOLETO ?? 'auto').toLowerCase();
     const allowPix = enablePixEnv === 'true' ? true : enablePixEnv === 'false' ? false : true;
+    const allowBoleto = enableBoletoEnv === 'true' ? true : enableBoletoEnv === 'false' ? false : true;
 
     const total = Number(req.body?.total);
     if (!Number.isFinite(total) || total <= 0) {
@@ -134,19 +150,29 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
     const appUrl = (process.env.APP_URL || origin).replace(/\/$/, "");
 
     const amountInCents = Math.round(total * 100);
+    const boletoExpiresDaysRaw = parseInt(String(process.env.BOLETO_EXPIRES_AFTER_DAYS ?? '3'), 10);
+    const boletoExpiresDays = Number.isFinite(boletoExpiresDaysRaw) && boletoExpiresDaysRaw > 0 ? boletoExpiresDaysRaw : 3;
 
     // Extrair produtos do carrinho (se enviados)
     const products = req.body?.products || [];
     
-    console.log('[Checkout POST] total, currency, allowPix, mode', { total, currency, allowPix, mode: isLiveKey ? 'live' : 'test' });
+    console.log('[Checkout POST] total, currency, allowPix, allowBoleto, boletoExpiresDays, mode', { total, currency, allowPix, allowBoleto, boletoExpiresDays, mode: isLiveKey ? 'live' : 'test' });
     let session;
     try {
+      const paymentMethods: string[] = ['card'];
+      if (currency === 'BRL' && allowPix) paymentMethods.push('pix');
+      if (currency === 'BRL' && allowBoleto) paymentMethods.push('boleto');
+      const paymentIntentData: any = {};
+      if (paymentMethods.includes('boleto')) {
+        paymentIntentData.payment_method_options = { boleto: { expires_after_days: boletoExpiresDays } };
+      }
       session = await stripe.checkout.sessions.create({
         mode: "payment",
-        payment_method_types: allowPix ? ["card", "pix"] : ["card"],
+        payment_method_types: paymentMethods as any,
         locale: "pt-BR",
         success_url: `${appUrl}/pages/confirmacao-pagamento.html?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${appUrl}/pages/carrinho.html`,
+        payment_intent_data: paymentIntentData,
         metadata: {
           products: JSON.stringify(products),
           total: total.toString(),
@@ -164,8 +190,10 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
       });
     } catch (e: any) {
       const msg = String(e?.message || "");
-      if (allowPix && (msg.toLowerCase().includes("pix is invalid") || msg.toLowerCase().includes("payment method type provided: pix"))) {
-        console.warn("Pix não habilitado na Stripe. Fazendo fallback para 'card' apenas.");
+      const pixInvalid = msg.toLowerCase().includes("pix is invalid") || msg.toLowerCase().includes("payment method type provided: pix");
+      const boletoInvalid = msg.toLowerCase().includes("boleto is invalid") || msg.toLowerCase().includes("payment method type provided: boleto");
+      if ((allowPix && pixInvalid) || (allowBoleto && boletoInvalid)) {
+        console.warn("Pix/Boleto não habilitado(s) na Stripe. Fazendo fallback para 'card' apenas.");
         session = await stripe.checkout.sessions.create({
           mode: "payment",
           payment_method_types: ["card"],
