@@ -46,7 +46,7 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
         mode: "payment",
         payment_method_types: allowPix ? ["card", "pix"] : ["card"],
         locale: "pt-BR",
-        success_url: `${appUrl}/pages/confirmacao-pagamento.html?amount=${total.toFixed(2)}&currency=${currency}`,
+        success_url: `${appUrl}/pages/confirmacao-pagamento.html?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${appUrl}/pages/carrinho.html`,
         line_items: [
           {
@@ -68,7 +68,7 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
           mode: "payment",
           payment_method_types: ["card"],
           locale: "pt-BR",
-          success_url: `${appUrl}/pages/confirmacao-pagamento.html?amount=${total.toFixed(2)}&currency=${currency}`,
+          success_url: `${appUrl}/pages/confirmacao-pagamento.html?session_id={CHECKOUT_SESSION_ID}`,
           cancel_url: `${appUrl}/pages/carrinho.html`,
           line_items: [
             {
