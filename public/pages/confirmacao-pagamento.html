@@ -127,8 +127,8 @@
     <!-- Recibo detalhado -->
     <div id="receipt-card" class="receipt-card" style="display: none;">
       <div class="receipt-header">
-        <h1><i class="fa-solid fa-check-circle" style="color: #22c55e;"></i> Pagamento Confirmado!</h1>
-        <p style="color: var(--text-secondary); margin-top: 0.5rem;">Obrigado pela sua compra</p>
+        <h1 id="receipt-title"><i class="fa-solid fa-check-circle" id="receipt-icon" style="color: #22c55e;"></i> Pagamento realizado com sucesso!</h1>
+        <p style="color: var(--text-secondary); margin-top: 0.5rem;" id="receipt-subtitle">Obrigado pela sua compra</p>
       </div>
 
       <div class="receipt-row">
@@ -236,10 +236,21 @@
       const paymentDate = new Date(payment.paidAt || payment.createdAt);
       document.getElementById('payment-date').textContent = paymentDate.toLocaleString('pt-BR');
       
-      // Status
+      // Status e título dinâmico
       const statusEl = document.getElementById('payment-status');
-      statusEl.textContent = payment.status === 'succeeded' ? 'Pago' : 'Pendente';
-      statusEl.className = `status-badge status-${payment.status}`;
+      const isPaid = payment.status === 'succeeded' || payment.payment_status === 'paid';
+      statusEl.textContent = isPaid ? 'Pago' : 'Pendente';
+      statusEl.className = `status-badge ${isPaid ? 'status-succeeded' : 'status-pending'}`;
+      const titleEl = document.getElementById('receipt-title');
+      const iconEl = document.getElementById('receipt-icon');
+      const subtitleEl = document.getElementById('receipt-subtitle');
+      if (isPaid) {
+        titleEl.innerHTML = `<i class="fa-solid fa-check-circle" id="receipt-icon" style="color: #22c55e;"></i> Pagamento realizado com sucesso!`;
+        subtitleEl.textContent = 'Obrigado pela sua compra';
+      } else {
+        titleEl.innerHTML = `<i class="fa-solid fa-hourglass-half" id="receipt-icon" style="color: #f59e0b;"></i> Pagamento pendente`;
+        subtitleEl.textContent = 'Seu pedido foi criado. Aguarde a confirmação do pagamento.';
+      }
       
       // Método de pagamento
       const methodMap = {
