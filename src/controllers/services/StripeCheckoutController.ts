@@ -49,9 +49,9 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
       const paymentMethods: string[] = ['card'];
       if (currency === 'BRL' && allowPix) paymentMethods.push('pix');
       if (currency === 'BRL' && allowBoleto) paymentMethods.push('boleto');
-      const paymentIntentData: any = {};
+      const paymentMethodOptions: any = {};
       if (paymentMethods.includes('boleto')) {
-        paymentIntentData.payment_method_options = { boleto: { expires_after_days: boletoExpiresDays } };
+        paymentMethodOptions.boleto = { expires_after_days: boletoExpiresDays };
       }
       session = await stripe.checkout.sessions.create({
         mode: "payment",
@@ -59,7 +59,7 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
         locale: "pt-BR",
         success_url: `${appUrl}/pages/confirmacao-pagamento.html?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${appUrl}/pages/carrinho.html`,
-        payment_intent_data: paymentIntentData,
+        payment_method_options: paymentMethodOptions,
         line_items: [
           {
             price_data: {
@@ -162,9 +162,9 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
       const paymentMethods: string[] = ['card'];
       if (currency === 'BRL' && allowPix) paymentMethods.push('pix');
       if (currency === 'BRL' && allowBoleto) paymentMethods.push('boleto');
-      const paymentIntentData: any = {};
+      const paymentMethodOptions: any = {};
       if (paymentMethods.includes('boleto')) {
-        paymentIntentData.payment_method_options = { boleto: { expires_after_days: boletoExpiresDays } };
+        paymentMethodOptions.boleto = { expires_after_days: boletoExpiresDays };
       }
       session = await stripe.checkout.sessions.create({
         mode: "payment",
@@ -172,7 +172,7 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
         locale: "pt-BR",
         success_url: `${appUrl}/pages/confirmacao-pagamento.html?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${appUrl}/pages/carrinho.html`,
-        payment_intent_data: paymentIntentData,
+        payment_method_options: paymentMethodOptions,
         metadata: {
           products: JSON.stringify(products),
           total: total.toString(),
