@@ -89,11 +89,8 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
       });
     } catch (e: any) {
       const msg = String(e?.message || "");
-      // Fallback: se Pix/Boleto não estiverem habilitados na conta, tenta apenas cartão
-      const pixInvalid = msg.toLowerCase().includes("pix is invalid") || msg.toLowerCase().includes("payment method type provided: pix");
-      const boletoInvalid = msg.toLowerCase().includes("boleto is invalid") || msg.toLowerCase().includes("payment method type provided: boleto");
-      if ((allowPix && pixInvalid) || (allowBoleto && boletoInvalid)) {
-        console.warn("Pix/Boleto não habilitado(s) na Stripe. Fazendo fallback para 'card' apenas.");
+      console.warn("[Checkout GET] erro ao criar sessão com métodos solicitados:", msg, "— tentando fallback para cartão apenas.");
+      try {
         session = await stripe.checkout.sessions.create({
           mode: "payment",
           payment_method_types: ["card"],
@@ -111,9 +108,9 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
             },
           ],
         });
-      } else {
-        console.error('[Checkout GET] erro ao criar sessão', msg);
-        throw e;
+      } catch (e2: any) {
+        console.error('[Checkout GET] fallback cartão falhou', String(e2?.message || e2));
+        throw e2;
       }
     }
 
@@ -217,10 +214,8 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
       });
     } catch (e: any) {
       const msg = String(e?.message || "");
-      const pixInvalid = msg.toLowerCase().includes("pix is invalid") || msg.toLowerCase().includes("payment method type provided: pix");
-      const boletoInvalid = msg.toLowerCase().includes("boleto is invalid") || msg.toLowerCase().includes("payment method type provided: boleto");
-      if ((allowPix && pixInvalid) || (allowBoleto && boletoInvalid)) {
-        console.warn("Pix/Boleto não habilitado(s) na Stripe. Fazendo fallback para 'card' apenas.");
+      console.warn("[Checkout POST] erro ao criar sessão com métodos solicitados:", msg, "— tentando fallback para cartão apenas.");
+      try {
         session = await stripe.checkout.sessions.create({
           mode: "payment",
           payment_method_types: ["card"],
@@ -242,9 +237,9 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
             },
           ],
         });
-      } else {
-        console.error('[Checkout POST] erro ao criar sessão', msg);
-        throw e;
+      } catch (e2: any) {
+        console.error('[Checkout POST] fallback cartão falhou', String(e2?.message || e2));
+        throw e2;
       }
     }
 
