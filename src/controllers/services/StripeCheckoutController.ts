@@ -326,28 +326,28 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
           if (found) {
             customerId = found.id;
             // Atualiza endereço se obtido pelo CEP
-            if (prefillAddress) {
-              await stripe.customers.update(customerId, {
-                name,
-                address: prefillAddress,
-                shipping: name ? { name, address: prefillAddress } : undefined,
-              });
+            if (prefillAddress || name) {
+              const params: Stripe.CustomerUpdateParams = {};
+              if (name) params.name = name;
+              if (prefillAddress) params.address = prefillAddress;
+              if (prefillAddress && name) params.shipping = { name, address: prefillAddress };
+              await stripe.customers.update(customerId, params);
             }
           } else {
-            const created = await stripe.customers.create({
-              email,
-              name,
-              address: prefillAddress,
-              shipping: name ? { name, address: prefillAddress } : undefined,
-            });
+            const params: Stripe.CustomerCreateParams = {};
+            params.email = email;
+            if (name) params.name = name;
+            if (prefillAddress) params.address = prefillAddress;
+            if (prefillAddress && name) params.shipping = { name, address: prefillAddress };
+            const created = await stripe.customers.create(params);
             customerId = created.id;
           }
         } else if (prefillAddress || name) {
-          const created = await stripe.customers.create({
-            name,
-            address: prefillAddress,
-            shipping: name ? { name, address: prefillAddress } : undefined,
-          });
+          const params: Stripe.CustomerCreateParams = {};
+          if (name) params.name = name;
+          if (prefillAddress) params.address = prefillAddress;
+          if (prefillAddress && name) params.shipping = { name, address: prefillAddress };
+          const created = await stripe.customers.create(params);
           customerId = created.id;
         }
       } catch (e) {
@@ -361,7 +361,7 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
         billing_address_collection: 'required',
         shipping_address_collection: { allowed_countries: allowedCountriesPost },
         customer: customerId,
-        customer_email: email,
+        customer_email: customerId ? undefined : email,
         customer_update: customerId ? { address: 'auto', shipping: 'auto' } : undefined,
         shipping_options: (() => {
           const rateId = process.env.SHIPPING_RATE_ID;
@@ -441,32 +441,32 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
           if (email) {
             const existing = await stripe.customers.list({ email, limit: 1 });
             const found = existing.data?.[0];
-            if (found) {
-              customerId = found.id;
-              if (prefillAddress) {
-                await stripe.customers.update(customerId, {
-                  name,
-                  address: prefillAddress,
-                  shipping: name ? { name, address: prefillAddress } : undefined,
-                });
-              }
-            } else {
-              const created = await stripe.customers.create({
-                email,
-                name,
-                address: prefillAddress,
-                shipping: name ? { name, address: prefillAddress } : undefined,
-              });
-              customerId = created.id;
+          if (found) {
+            customerId = found.id;
+            if (prefillAddress || name) {
+              const params: Stripe.CustomerUpdateParams = {};
+              if (name) params.name = name;
+              if (prefillAddress) params.address = prefillAddress;
+              if (prefillAddress && name) params.shipping = { name, address: prefillAddress };
+              await stripe.customers.update(customerId, params);
             }
-          } else if (prefillAddress || name) {
-            const created = await stripe.customers.create({
-              name,
-              address: prefillAddress,
-              shipping: name ? { name, address: prefillAddress } : undefined,
-            });
+          } else {
+            const params: Stripe.CustomerCreateParams = {};
+            params.email = email;
+            if (name) params.name = name;
+            if (prefillAddress) params.address = prefillAddress;
+            if (prefillAddress && name) params.shipping = { name, address: prefillAddress };
+            const created = await stripe.customers.create(params);
             customerId = created.id;
           }
+        } else if (prefillAddress || name) {
+          const params: Stripe.CustomerCreateParams = {};
+          if (name) params.name = name;
+          if (prefillAddress) params.address = prefillAddress;
+          if (prefillAddress && name) params.shipping = { name, address: prefillAddress };
+          const created = await stripe.customers.create(params);
+          customerId = created.id;
+        }
         } catch (e) {
           console.warn('[Checkout POST] fallback: não foi possível preparar Customer para prefill:', String((e as any)?.message || e));
         }
@@ -478,7 +478,7 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
           billing_address_collection: 'required',
           shipping_address_collection: { allowed_countries: allowedCountriesPostFallback },
           customer: customerId,
-          customer_email: email,
+          customer_email: customerId ? undefined : email,
           customer_update: customerId ? { address: 'auto', shipping: 'auto' } : undefined,
           shipping_options: (() => {
             const rateId = process.env.SHIPPING_RATE_ID;
