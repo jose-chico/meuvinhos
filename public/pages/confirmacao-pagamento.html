@@ -22,19 +22,20 @@
 </head>
 <body>
   <div class="wrap">
-    <h1>Pagamento confirmado ✅</h1>
-    <p>Obrigado pela sua compra! Estamos processando seu pedido.</p>
+    <h1 id="title">Pagamento confirmado ✅</h1>
+    <p id="lead">Obrigado pela sua compra! Estamos processando seu pedido.</p>
 
     <div class="summary">
       <p class="muted">ID da sessão: <code id="sessionId">carregando…</code></p>
       <p class="muted">Resumo do carrinho:<br><span id="cartSummary">lendo…</span></p>
     </div>
 
-    <p class="muted">Você será redirecionado para a página inicial em alguns segundos.</p>
+    <p class="muted" id="redirectMsg">Você será redirecionado para a página inicial em alguns segundos.</p>
 
     <div class="actions">
       <button class="btn primary" onclick="goHome()">Ir para a página inicial</button>
       <button class="btn" onclick="cancelRedirect()">Cancelar redirecionamento</button>
+      <button class="btn" id="restartBtn" style="display:none" onclick="startCheckout()">Reiniciar checkout agora</button>
     </div>
   </div>
 
@@ -59,16 +60,62 @@
       document.getElementById('cartSummary').textContent = 'não foi possível ler o carrinho';
     }
 
-    // Limpa o carrinho para evitar duplicidade pós-pagamento
-    try { localStorage.removeItem('carrinho'); } catch {}
+    // Se houver session_id, fluxo normal: limpar carrinho e redirecionar
+    let timer;
+    if (sessionId) {
+      try { localStorage.removeItem('carrinho'); } catch {}
+      timer = setTimeout(() => {
+        window.location.href = '/pages/index.html';
+      }, 4000);
+    } else {
+      // Sem session_id: mensagem clara e opção (e tentativa automática) de reiniciar checkout
+      const title = document.getElementById('title');
+      const lead = document.getElementById('lead');
+      const redirectMsg = document.getElementById('redirectMsg');
+      title.textContent = 'Não foi possível confirmar o pagamento';
+      lead.textContent = 'Não encontramos o identificador da sessão (session_id). Podemos iniciar novamente o checkout com seu carrinho.';
+      redirectMsg.textContent = 'Iniciaremos um novo checkout automaticamente em alguns segundos.';
 
-    // Redireciona automaticamente após alguns segundos
-    let timer = setTimeout(() => {
-      window.location.href = '/pages/index.html';
-    }, 4000);
+      async function startCheckout() {
+        try {
+          const raw = localStorage.getItem('carrinho');
+          const carrinho = raw ? JSON.parse(raw) : [];
+          const products = Array.isArray(carrinho) ? carrinho : [];
+          const total = Number((products.reduce((acc, p) => acc + (typeof p.preco === 'number' ? p.preco : parseFloat(String(p.preco).replace(/\.(?=\d{3}(\D|$))/g, '').replace(',', '.')) || 0), 0)).toFixed(2));
+
+          if (!products.length || !Number.isFinite(total) || total <= 0) {
+            alert('Seu carrinho está vazio ou inválido. Voltando ao carrinho.');
+            window.location.href = '/pages/carrinho.html';
+            return;
+          }
+
+          const resp = await fetch('/checkout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ products, total, currency: 'BRL' })
+          });
+          const data = await resp.json();
+          if (resp.ok && data?.url) {
+            window.location.href = data.url;
+          } else {
+            throw new Error(data?.message || 'Falha ao iniciar checkout.');
+          }
+        } catch (e) {
+          alert('Não foi possível reiniciar o checkout automaticamente. Você pode tentar novamente a partir do carrinho.');
+        }
+      }
+
+      // Tentativa automática após 5s
+      timer = setTimeout(startCheckout, 5000);
+
+      // Expõe no escopo global para o botão
+      window.startCheckout = () => { clearTimeout(timer); startCheckout(); };
+    }
 
     function goHome() { clearTimeout(timer); window.location.href = '/pages/index.html'; }
     function cancelRedirect() { clearTimeout(timer); alert('Redirecionamento cancelado. Você pode continuar nesta página.'); }
   </script>
 </body>
 </html>
+      const restartBtn = document.getElementById('restartBtn');
+      restartBtn.style.display = 'inline-block';
