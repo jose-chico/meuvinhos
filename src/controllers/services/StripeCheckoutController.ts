@@ -123,9 +123,16 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
           if (rateId && rateId.trim().length > 0) {
             return [{ shipping_rate: rateId }];
           }
-          const fixedCentsRaw = parseInt(String(process.env.SHIPPING_FIXED_AMOUNT_CENTS ?? '0'), 10);
-          const fixedCents = Number.isFinite(fixedCentsRaw) && fixedCentsRaw >= 0 ? fixedCentsRaw : 0;
-          const displayName = String(process.env.SHIPPING_DISPLAY_NAME || 'Entrega grátis a partir de R$ 300');
+          const thresholdCentsRaw = parseInt(String(process.env.FREE_SHIPPING_THRESHOLD_CENTS ?? '30000'), 10);
+          const thresholdCents = Number.isFinite(thresholdCentsRaw) && thresholdCentsRaw >= 0 ? thresholdCentsRaw : 30000;
+          const fixedCentsEnvRaw = parseInt(String(process.env.SHIPPING_FIXED_AMOUNT_CENTS ?? '2990'), 10);
+          const fixedCentsEnv = Number.isFinite(fixedCentsEnvRaw) && fixedCentsEnvRaw >= 0 ? fixedCentsEnvRaw : 0;
+          const totalCents = Math.round(total * 100);
+          const isFree = totalCents >= thresholdCents;
+          const fixedCents = isFree ? 0 : fixedCentsEnv;
+          const displayName = String(isFree
+            ? (process.env.SHIPPING_DISPLAY_NAME_FREE || 'Entrega grátis a partir de R$ 300')
+            : (process.env.SHIPPING_DISPLAY_NAME_PAID || 'Entrega padrão'));
           return [{
             shipping_rate_data: {
               display_name: displayName,
@@ -173,9 +180,16 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
             if (rateId && rateId.trim().length > 0) {
               return [{ shipping_rate: rateId }];
             }
-            const fixedCentsRaw = parseInt(String(process.env.SHIPPING_FIXED_AMOUNT_CENTS ?? '0'), 10);
-            const fixedCents = Number.isFinite(fixedCentsRaw) && fixedCentsRaw >= 0 ? fixedCentsRaw : 0;
-            const displayName = String(process.env.SHIPPING_DISPLAY_NAME || 'Entrega grátis a partir de R$ 300');
+            const thresholdCentsRaw = parseInt(String(process.env.FREE_SHIPPING_THRESHOLD_CENTS ?? '30000'), 10);
+            const thresholdCents = Number.isFinite(thresholdCentsRaw) && thresholdCentsRaw >= 0 ? thresholdCentsRaw : 30000;
+            const fixedCentsEnvRaw = parseInt(String(process.env.SHIPPING_FIXED_AMOUNT_CENTS ?? '2990'), 10);
+            const fixedCentsEnv = Number.isFinite(fixedCentsEnvRaw) && fixedCentsEnvRaw >= 0 ? fixedCentsEnvRaw : 0;
+            const totalCents = Math.round(total * 100);
+            const isFree = totalCents >= thresholdCents;
+            const fixedCents = isFree ? 0 : fixedCentsEnv;
+            const displayName = String(isFree
+              ? (process.env.SHIPPING_DISPLAY_NAME_FREE || 'Entrega grátis a partir de R$ 300')
+              : (process.env.SHIPPING_DISPLAY_NAME_PAID || 'Entrega padrão'));
             return [{
               shipping_rate_data: {
                 display_name: displayName,
@@ -376,9 +390,16 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
           if (rateId && rateId.trim().length > 0) {
             return [{ shipping_rate: rateId }];
           }
-          const fixedCentsRaw = parseInt(String(process.env.SHIPPING_FIXED_AMOUNT_CENTS ?? '0'), 10);
-          const fixedCents = Number.isFinite(fixedCentsRaw) && fixedCentsRaw >= 0 ? fixedCentsRaw : 0;
-          const displayName = String(process.env.SHIPPING_DISPLAY_NAME || 'Entrega grátis a partir de R$ 300');
+          const thresholdCentsRaw = parseInt(String(process.env.FREE_SHIPPING_THRESHOLD_CENTS ?? '30000'), 10);
+          const thresholdCents = Number.isFinite(thresholdCentsRaw) && thresholdCentsRaw >= 0 ? thresholdCentsRaw : 30000;
+          const fixedCentsEnvRaw = parseInt(String(process.env.SHIPPING_FIXED_AMOUNT_CENTS ?? '2990'), 10);
+          const fixedCentsEnv = Number.isFinite(fixedCentsEnvRaw) && fixedCentsEnvRaw >= 0 ? fixedCentsEnvRaw : 0;
+          const totalCents = Math.round(total * 100);
+          const isFree = totalCents >= thresholdCents;
+          const fixedCents = isFree ? 0 : fixedCentsEnv;
+          const displayName = String(isFree
+            ? (process.env.SHIPPING_DISPLAY_NAME_FREE || 'Entrega grátis a partir de R$ 300')
+            : (process.env.SHIPPING_DISPLAY_NAME_PAID || 'Entrega padrão'));
           return [{
             shipping_rate_data: {
               display_name: displayName,
@@ -499,9 +520,16 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
             if (rateId && rateId.trim().length > 0) {
               return [{ shipping_rate: rateId }];
             }
-            const fixedCentsRaw = parseInt(String(process.env.SHIPPING_FIXED_AMOUNT_CENTS ?? '0'), 10);
-            const fixedCents = Number.isFinite(fixedCentsRaw) && fixedCentsRaw >= 0 ? fixedCentsRaw : 0;
-            const displayName = String(process.env.SHIPPING_DISPLAY_NAME || 'Entrega grátis a partir de R$ 300');
+            const thresholdCentsRaw = parseInt(String(process.env.FREE_SHIPPING_THRESHOLD_CENTS ?? '30000'), 10);
+            const thresholdCents = Number.isFinite(thresholdCentsRaw) && thresholdCentsRaw >= 0 ? thresholdCentsRaw : 30000;
+            const fixedCentsEnvRaw = parseInt(String(process.env.SHIPPING_FIXED_AMOUNT_CENTS ?? '2990'), 10);
+            const fixedCentsEnv = Number.isFinite(fixedCentsEnvRaw) && fixedCentsEnvRaw >= 0 ? fixedCentsEnvRaw : 0;
+            const totalCents = Math.round(total * 100);
+            const isFree = totalCents >= thresholdCents;
+            const fixedCents = isFree ? 0 : fixedCentsEnv;
+            const displayName = String(isFree
+              ? (process.env.SHIPPING_DISPLAY_NAME_FREE || 'Entrega grátis a partir de R$ 300')
+              : (process.env.SHIPPING_DISPLAY_NAME_PAID || 'Entrega padrão'));
             return [{
               shipping_rate_data: {
                 display_name: displayName,
