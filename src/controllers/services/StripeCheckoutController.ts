@@ -354,6 +354,17 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
         console.warn('[Checkout POST] não foi possível preparar Customer para prefill:', String((e as any)?.message || e));
       }
 
+      const sessionMetadata: Stripe.MetadataParam = {
+        products: JSON.stringify(products),
+        total: total.toString(),
+      };
+      if (via?.cep) sessionMetadata.delivery_cep = via.cep;
+      if (via?.bairro) sessionMetadata.delivery_bairro = via.bairro;
+      if (via?.localidade) sessionMetadata.delivery_city = via.localidade;
+      if (via?.uf) sessionMetadata.delivery_state = via.uf;
+      if (prefillAddress?.line1) sessionMetadata.delivery_line1 = prefillAddress.line1;
+      if (prefillAddress?.line2) sessionMetadata.delivery_line2 = prefillAddress.line2;
+
       const sessionParams: Stripe.Checkout.SessionCreateParams = {
         mode: "payment",
         payment_method_types: paymentMethods as any,
@@ -383,16 +394,7 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
         success_url: successUrl,
         cancel_url: cancelUrl,
         payment_method_options: paymentMethodOptions,
-        metadata: {
-          products: JSON.stringify(products),
-          total: total.toString(),
-          delivery_cep: via?.cep || undefined,
-          delivery_bairro: via?.bairro || undefined,
-          delivery_city: via?.localidade || undefined,
-          delivery_state: via?.uf || undefined,
-          delivery_line1: prefillAddress?.line1 || undefined,
-          delivery_line2: prefillAddress?.line2 || undefined,
-        },
+        metadata: sessionMetadata,
         line_items: [
           {
             price_data: {
@@ -475,6 +477,17 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
           console.warn('[Checkout POST] fallback: não foi possível preparar Customer para prefill:', String((e as any)?.message || e));
         }
 
+        const fallbackMetadata: Stripe.MetadataParam = {
+          products: JSON.stringify(products),
+          total: total.toString(),
+        };
+        if (via?.cep) fallbackMetadata.delivery_cep = via.cep;
+        if (via?.bairro) fallbackMetadata.delivery_bairro = via.bairro;
+        if (via?.localidade) fallbackMetadata.delivery_city = via.localidade;
+        if (via?.uf) fallbackMetadata.delivery_state = via.uf;
+        if (prefillAddress?.line1) fallbackMetadata.delivery_line1 = prefillAddress.line1;
+        if (prefillAddress?.line2) fallbackMetadata.delivery_line2 = prefillAddress.line2;
+
         const fallbackParams: Stripe.Checkout.SessionCreateParams = {
           mode: "payment",
           payment_method_types: ["card"],
@@ -503,16 +516,7 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
           })(),
           success_url: successUrl,
           cancel_url: cancelUrl,
-          metadata: {
-            products: JSON.stringify(products),
-            total: total.toString(),
-            delivery_cep: via?.cep || undefined,
-            delivery_bairro: via?.bairro || undefined,
-            delivery_city: via?.localidade || undefined,
-            delivery_state: via?.uf || undefined,
-            delivery_line1: prefillAddress?.line1 || undefined,
-            delivery_line2: prefillAddress?.line2 || undefined,
-          },
+          metadata: fallbackMetadata,
           line_items: [
             {
             price_data: {
