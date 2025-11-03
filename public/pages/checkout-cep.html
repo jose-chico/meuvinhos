@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Checkout com CEP (pré-endereço)</title>
+    <style>
+      body { font-family: system-ui, Arial, sans-serif; margin: 24px; }
+      .card { max-width: 560px; margin: 0 auto; border: 1px solid #ddd; border-radius: 8px; padding: 16px; }
+      .row { display: flex; gap: 12px; }
+      .col { flex: 1; }
+      label { display: block; font-size: 13px; margin-bottom: 4px; color: #333; }
+      input, select, button { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
+      input[readonly] { background: #f7f7f7; }
+      button { background: #2e6bff; color: white; border: none; cursor: pointer; }
+      button:disabled { background: #9bb8ff; cursor: not-allowed; }
+      .hint { color: #666; font-size: 12px; margin-top: 4px; }
+      .error { color: #b00020; margin-top: 8px; }
+      .success { color: #0a7a1c; margin-top: 8px; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h2>Endereço e pagamento</h2>
+      <p class="hint">Use seu CEP para preencher automaticamente o endereço antes de continuar para o Stripe Checkout.</p>
+
+      <form id="form">
+        <div class="row">
+          <div class="col">
+            <label for="name">Nome completo</label>
+            <input id="name" name="name" type="text" placeholder="Seu nome" required />
+          </div>
+        </div>
+        <div class="row">
+          <div class="col">
+            <label for="email">E-mail</label>
+            <input id="email" name="email" type="email" placeholder="voce@email.com" required />
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <label for="cep">CEP</label>
+            <input id="cep" name="cep" type="text" placeholder="00000-000" inputmode="numeric" maxlength="9" />
+            <div class="hint">Digite 8 dígitos. Ex: 77022-386</div>
+          </div>
+          <div class="col">
+            <label for="numero">Número</label>
+            <input id="numero" name="numero" type="text" placeholder="123" />
+          </div>
+          <div class="col">
+            <label for="complemento">Complemento</label>
+            <input id="complemento" name="complemento" type="text" placeholder="Apto, bloco, referência" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <label for="logradouro">Endereço, linha 1</label>
+            <input id="logradouro" type="text" placeholder="Rua/Av" readonly />
+          </div>
+        </div>
+        <div class="row">
+          <div class="col">
+            <label for="bairro">Bairro</label>
+            <input id="bairro" type="text" placeholder="Bairro" readonly />
+          </div>
+          <div class="col">
+            <label for="cidade">Cidade</label>
+            <input id="cidade" type="text" placeholder="Cidade" readonly />
+          </div>
+          <div class="col">
+            <label for="estado">Estado</label>
+            <input id="estado" type="text" placeholder="UF" readonly />
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <label for="total">Total (R$)</label>
+            <input id="total" name="total" type="text" placeholder="Ex: 99,90" />
+            <div class="hint">Se vier do carrinho, pode ser preenchido via query (?total=99.90).</div>
+          </div>
+        </div>
+
+        <div id="msg" class="error" style="display:none"></div>
+        <div id="ok" class="success" style="display:none"></div>
+
+        <div class="row" style="margin-top: 16px;">
+          <button id="btn" type="submit">Ir para Stripe Checkout</button>
+        </div>
+      </form>
+    </div>
+
+    <script>
+      const $ = (sel) => document.querySelector(sel);
+      const fmtCEP = (s) => {
+        const d = String(s || '').replace(/\D/g, '').slice(0, 8);
+        if (d.length > 5) return d.slice(0,5) + '-' + d.slice(5);
+        return d;
+      };
+
+      function setMessage(type, text) {
+        const msg = $('#msg');
+        const ok = $('#ok');
+        msg.style.display = 'none';
+        ok.style.display = 'none';
+        if (type === 'error') { msg.textContent = text; msg.style.display = 'block'; }
+        if (type === 'success') { ok.textContent = text; ok.style.display = 'block'; }
+      }
+
+      async function lookupCEP(cepRaw) {
+        const cep = String(cepRaw || '').replace(/\D/g, '');
+        if (cep.length !== 8) return null;
+        const r = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+        const data = await r.json();
+        if (!data || data.erro) return null;
+        return data;
+      }
+
+      // Preenche total via query string, se existir
+      (function initTotal() {
+        const params = new URLSearchParams(location.search);
+        const total = params.get('total');
+        if (total) $('#total').value = total;
+      })();
+
+      // Máscara e busca CEP
+      $('#cep').addEventListener('input', async (e) => {
+        const v = fmtCEP(e.target.value);
+        e.target.value = v;
+        const digits = v.replace(/\D/g, '');
+        if (digits.length === 8) {
+          setMessage('success', 'Buscando endereço pelo CEP...');
+          try {
+            const data = await lookupCEP(digits);
+            if (!data) {
+              setMessage('error', 'CEP inválido ou não encontrado.');
+              $('#logradouro').value = '';
+              $('#bairro').value = '';
+              $('#cidade').value = '';
+              $('#estado').value = '';
+              return;
+            }
+            setMessage('success', 'Endereço encontrado. Confira os campos.');
+            $('#logradouro').value = data.logradouro || '';
+            $('#bairro').value = data.bairro || '';
+            $('#cidade').value = data.localidade || '';
+            $('#estado').value = data.uf || '';
+          } catch (err) {
+            console.error(err);
+            setMessage('error', 'Erro ao consultar ViaCEP. Tente novamente.');
+          }
+        }
+      });
+
+      $('#form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        setMessage(null, '');
+        const btn = $('#btn');
+        btn.disabled = true;
+        try {
+          const name = $('#name').value.trim();
+          const email = $('#email').value.trim();
+          const cep = $('#cep').value.replace(/\D/g, '');
+          const numero = $('#numero').value.trim();
+          const complemento = $('#complemento').value.trim();
+          const totalStr = $('#total').value.trim();
+          if (!name || !email) { setMessage('error', 'Informe nome e e-mail.'); btn.disabled = false; return; }
+          if (cep.length !== 8) { setMessage('error', 'Informe um CEP válido com 8 dígitos.'); btn.disabled = false; return; }
+          if (!totalStr) { setMessage('error', 'Informe o total (ex: 99,90).'); btn.disabled = false; return; }
+
+          const body = {
+            name,
+            email,
+            cep,
+            numero,
+            complemento,
+            total: totalStr,
+            currency: 'BRL',
+          };
+
+          const r = await fetch('/checkout/stripe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+          });
+          const data = await r.json();
+          if (!r.ok || !data?.url) {
+            throw new Error(data?.message || 'Falha ao iniciar checkout');
+          }
+          window.location.href = data.url;
+        } catch (err) {
+          console.error(err);
+          setMessage('error', String(err?.message || err));
+          btn.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>
