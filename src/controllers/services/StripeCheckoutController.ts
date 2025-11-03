@@ -125,7 +125,7 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
           }
           const fixedCentsRaw = parseInt(String(process.env.SHIPPING_FIXED_AMOUNT_CENTS ?? '0'), 10);
           const fixedCents = Number.isFinite(fixedCentsRaw) && fixedCentsRaw >= 0 ? fixedCentsRaw : 0;
-          const displayName = String(process.env.SHIPPING_DISPLAY_NAME || 'Entrega padrão');
+          const displayName = String(process.env.SHIPPING_DISPLAY_NAME || 'Entrega grátis a partir de R$ 300');
           return [{
             shipping_rate_data: {
               display_name: displayName,
@@ -175,7 +175,7 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
             }
             const fixedCentsRaw = parseInt(String(process.env.SHIPPING_FIXED_AMOUNT_CENTS ?? '0'), 10);
             const fixedCents = Number.isFinite(fixedCentsRaw) && fixedCentsRaw >= 0 ? fixedCentsRaw : 0;
-            const displayName = String(process.env.SHIPPING_DISPLAY_NAME || 'Entrega padrão');
+            const displayName = String(process.env.SHIPPING_DISPLAY_NAME || 'Entrega grátis a partir de R$ 300');
             return [{
               shipping_rate_data: {
                 display_name: displayName,
@@ -378,7 +378,7 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
           }
           const fixedCentsRaw = parseInt(String(process.env.SHIPPING_FIXED_AMOUNT_CENTS ?? '0'), 10);
           const fixedCents = Number.isFinite(fixedCentsRaw) && fixedCentsRaw >= 0 ? fixedCentsRaw : 0;
-          const displayName = String(process.env.SHIPPING_DISPLAY_NAME || 'Entrega padrão');
+          const displayName = String(process.env.SHIPPING_DISPLAY_NAME || 'Entrega grátis a partir de R$ 300');
           return [{
             shipping_rate_data: {
               display_name: displayName,
@@ -501,7 +501,7 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
             }
             const fixedCentsRaw = parseInt(String(process.env.SHIPPING_FIXED_AMOUNT_CENTS ?? '0'), 10);
             const fixedCents = Number.isFinite(fixedCentsRaw) && fixedCentsRaw >= 0 ? fixedCentsRaw : 0;
-            const displayName = String(process.env.SHIPPING_DISPLAY_NAME || 'Entrega padrão');
+            const displayName = String(process.env.SHIPPING_DISPLAY_NAME || 'Entrega grátis a partir de R$ 300');
             return [{
               shipping_rate_data: {
                 display_name: displayName,
