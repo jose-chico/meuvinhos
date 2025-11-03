@@ -83,6 +83,7 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
         mode: "payment",
         payment_method_types: paymentMethods as any,
         locale: "pt-BR",
+        billing_address_collection: 'required',
         shipping_address_collection: { allowed_countries: String(process.env.SHIPPING_ALLOWED_COUNTRIES || 'BR').split(',').map(c => c.trim().toUpperCase()).filter(Boolean) },
         shipping_options: (() => {
           const rateId = process.env.SHIPPING_RATE_ID;
@@ -96,7 +97,7 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
             shipping_rate_data: {
               display_name: displayName,
               type: 'fixed_amount',
-              fixed_amount: { amount: fixedCents, currency },
+              fixed_amount: { amount: fixedCents, currency: currency.toLowerCase() },
               delivery_estimate: {
                 minimum: { unit: 'business_day', value: 3 },
                 maximum: { unit: 'business_day', value: 10 }
@@ -110,7 +111,7 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
         line_items: [
           {
             price_data: {
-              currency,
+              currency: currency.toLowerCase(),
               product_data: { name: "Pedido Casa de Vinho" },
               unit_amount: amountInCents,
             },
@@ -126,6 +127,7 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
           mode: "payment",
           payment_method_types: ["card"],
           locale: "pt-BR",
+          billing_address_collection: 'required',
           shipping_address_collection: { allowed_countries: String(process.env.SHIPPING_ALLOWED_COUNTRIES || 'BR').split(',').map(c => c.trim().toUpperCase()).filter(Boolean) },
           shipping_options: (() => {
             const rateId = process.env.SHIPPING_RATE_ID;
@@ -139,7 +141,7 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
               shipping_rate_data: {
                 display_name: displayName,
                 type: 'fixed_amount',
-                fixed_amount: { amount: fixedCents, currency },
+                fixed_amount: { amount: fixedCents, currency: currency.toLowerCase() },
                 delivery_estimate: {
                   minimum: { unit: 'business_day', value: 3 },
                   maximum: { unit: 'business_day', value: 10 }
@@ -151,14 +153,14 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
           cancel_url: cancelUrl,
           line_items: [
             {
-              price_data: {
-                currency,
-                product_data: { name: "Pedido Casa de Vinho" },
-                unit_amount: amountInCents,
-              },
-              quantity: 1,
+            price_data: {
+              currency: currency.toLowerCase(),
+              product_data: { name: "Pedido Casa de Vinho" },
+              unit_amount: amountInCents,
             },
-          ],
+            quantity: 1,
+          },
+        ],
         });
       } catch (e2: any) {
         console.error('[Checkout GET] fallback cartão falhou', String(e2?.message || e2));
@@ -255,6 +257,7 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
         mode: "payment",
         payment_method_types: paymentMethods as any,
         locale: "pt-BR",
+        billing_address_collection: 'required',
         shipping_address_collection: { allowed_countries: String(process.env.SHIPPING_ALLOWED_COUNTRIES || 'BR').split(',').map(c => c.trim().toUpperCase()).filter(Boolean) },
         shipping_options: (() => {
           const rateId = process.env.SHIPPING_RATE_ID;
@@ -268,7 +271,7 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
             shipping_rate_data: {
               display_name: displayName,
               type: 'fixed_amount',
-              fixed_amount: { amount: fixedCents, currency },
+              fixed_amount: { amount: fixedCents, currency: currency.toLowerCase() },
               delivery_estimate: {
                 minimum: { unit: 'business_day', value: 3 },
                 maximum: { unit: 'business_day', value: 10 }
@@ -286,7 +289,7 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
         line_items: [
           {
             price_data: {
-              currency,
+              currency: currency.toLowerCase(),
               product_data: { name: "Pedido Casa de Vinho" },
               unit_amount: amountInCents,
             },
@@ -302,6 +305,7 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
           mode: "payment",
           payment_method_types: ["card"],
           locale: "pt-BR",
+          billing_address_collection: 'required',
           shipping_address_collection: { allowed_countries: String(process.env.SHIPPING_ALLOWED_COUNTRIES || 'BR').split(',').map(c => c.trim().toUpperCase()).filter(Boolean) },
           shipping_options: (() => {
             const rateId = process.env.SHIPPING_RATE_ID;
@@ -315,7 +319,7 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
               shipping_rate_data: {
                 display_name: displayName,
                 type: 'fixed_amount',
-                fixed_amount: { amount: fixedCents, currency },
+                fixed_amount: { amount: fixedCents, currency: currency.toLowerCase() },
                 delivery_estimate: {
                   minimum: { unit: 'business_day', value: 3 },
                   maximum: { unit: 'business_day', value: 10 }
@@ -331,14 +335,14 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
           },
           line_items: [
             {
-              price_data: {
-                currency,
-                product_data: { name: "Pedido Casa de Vinho" },
-                unit_amount: amountInCents,
-              },
-              quantity: 1,
+            price_data: {
+              currency: currency.toLowerCase(),
+              product_data: { name: "Pedido Casa de Vinho" },
+              unit_amount: amountInCents,
             },
-          ],
+            quantity: 1,
+          },
+        ],
         });
       } catch (e2: any) {
         console.error('[Checkout POST] fallback cartão falhou', String(e2?.message || e2));
