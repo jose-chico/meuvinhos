@@ -75,6 +75,18 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
       paymentMethod = pm.type; // 'card', 'pix', etc.
     }
 
+    // Preparar endereço de entrega em formato JSON serializável
+    const shippingAddressJson = session?.customer_details?.address
+      ? {
+          city: session.customer_details.address.city || null,
+          country: session.customer_details.address.country || null,
+          line1: session.customer_details.address.line1 || null,
+          line2: session.customer_details.address.line2 || null,
+          postal_code: session.customer_details.address.postal_code || null,
+          state: session.customer_details.address.state || null,
+        }
+      : null;
+
     // Salvar pagamento no banco
     const payment = await prisma.payment.create({
       data: {
@@ -90,7 +102,7 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
         metadata: {
           stripeMetadata: paymentIntent.metadata,
           sessionMetadata: session?.metadata || {},
-          shippingAddress: session?.customer_details?.address || null,
+          shippingAddress: shippingAddressJson,
           shippingPhone: session?.customer_details?.phone || null,
           shippingName: session?.customer_details?.name || null,
           shippingAmount: (session as any)?.shipping_cost?.amount_total ?? null,
