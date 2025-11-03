@@ -50,12 +50,18 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
     const host = req.get("host") || "localhost:8000";
   const origin = `${protocol}://${host}`;
   const appUrl = (process.env.APP_URL || origin).replace(/\/$/, "");
-  // Garante que o success_url tenha o session_id do Stripe quando não fornecido
-  const rawSuccessUrl = (process.env.CHECKOUT_SUCCESS_URL || `${appUrl}/`).replace(/\/$/, "");
+  // Normaliza URLs: se variáveis de ambiente forem relativas, prefixa com appUrl
+  const rawSuccessUrlEnv = (process.env.CHECKOUT_SUCCESS_URL || `${appUrl}/`).replace(/\/$/, "");
+  const rawSuccessUrl = /^https?:\/\//.test(rawSuccessUrlEnv)
+    ? rawSuccessUrlEnv
+    : `${appUrl}${rawSuccessUrlEnv.startsWith('/') ? '' : '/'}${rawSuccessUrlEnv}`;
   const successUrl = /\{CHECKOUT_SESSION_ID\}/.test(rawSuccessUrl) || /session_id=/.test(rawSuccessUrl)
     ? rawSuccessUrl
     : `${rawSuccessUrl}${rawSuccessUrl.includes('?') ? '&' : '?'}session_id={CHECKOUT_SESSION_ID}`;
-  const cancelUrl = (process.env.CHECKOUT_CANCEL_URL || `${appUrl}/pages/carrinho.html`).replace(/\/$/, "");
+  const rawCancelUrlEnv = (process.env.CHECKOUT_CANCEL_URL || `${appUrl}/pages/carrinho.html`).replace(/\/$/, "");
+  const cancelUrl = /^https?:\/\//.test(rawCancelUrlEnv)
+    ? rawCancelUrlEnv
+    : `${appUrl}${rawCancelUrlEnv.startsWith('/') ? '' : '/'}${rawCancelUrlEnv}`;
 
     const amountInCents = Math.round(total * 100);
     const boletoExpiresDaysRaw = parseInt(String(process.env.BOLETO_EXPIRES_AFTER_DAYS ?? '3'), 10);
@@ -174,11 +180,17 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
     const host = req.get("host") || "localhost:8000";
   const origin = `${protocol}://${host}`;
   const appUrl = (process.env.APP_URL || origin).replace(/\/$/, "");
-  const rawSuccessUrl = (process.env.CHECKOUT_SUCCESS_URL || `${appUrl}/`).replace(/\/$/, "");
+  const rawSuccessUrlEnv = (process.env.CHECKOUT_SUCCESS_URL || `${appUrl}/`).replace(/\/$/, "");
+  const rawSuccessUrl = /^https?:\/\//.test(rawSuccessUrlEnv)
+    ? rawSuccessUrlEnv
+    : `${appUrl}${rawSuccessUrlEnv.startsWith('/') ? '' : '/'}${rawSuccessUrlEnv}`;
   const successUrl = /\{CHECKOUT_SESSION_ID\}/.test(rawSuccessUrl) || /session_id=/.test(rawSuccessUrl)
     ? rawSuccessUrl
     : `${rawSuccessUrl}${rawSuccessUrl.includes('?') ? '&' : '?'}session_id={CHECKOUT_SESSION_ID}`;
-  const cancelUrl = (process.env.CHECKOUT_CANCEL_URL || `${appUrl}/pages/carrinho.html`).replace(/\/$/, "");
+  const rawCancelUrlEnv = (process.env.CHECKOUT_CANCEL_URL || `${appUrl}/pages/carrinho.html`).replace(/\/$/, "");
+  const cancelUrl = /^https?:\/\//.test(rawCancelUrlEnv)
+    ? rawCancelUrlEnv
+    : `${appUrl}${rawCancelUrlEnv.startsWith('/') ? '' : '/'}${rawCancelUrlEnv}`;
 
     const amountInCents = Math.round(total * 100);
     const boletoExpiresDaysRaw = parseInt(String(process.env.BOLETO_EXPIRES_AFTER_DAYS ?? '3'), 10);
