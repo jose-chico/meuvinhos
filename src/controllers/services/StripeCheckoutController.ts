@@ -354,15 +354,12 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
         console.warn('[Checkout POST] não foi possível preparar Customer para prefill:', String((e as any)?.message || e));
       }
 
-      session = await stripe.checkout.sessions.create({
+      const sessionParams: Stripe.Checkout.SessionCreateParams = {
         mode: "payment",
         payment_method_types: paymentMethods as any,
         locale: "pt-BR",
         billing_address_collection: 'required',
         shipping_address_collection: { allowed_countries: allowedCountriesPost },
-        customer: customerId,
-        customer_email: customerId ? undefined : email,
-        customer_update: customerId ? { address: 'auto', shipping: 'auto' } : undefined,
         shipping_options: (() => {
           const rateId = process.env.SHIPPING_RATE_ID;
           if (rateId && rateId.trim().length > 0) {
@@ -406,7 +403,14 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
             quantity: 1,
           },
         ],
-      });
+      };
+      if (customerId) {
+        sessionParams.customer = customerId;
+        sessionParams.customer_update = { address: 'auto', shipping: 'auto' };
+      } else if (email) {
+        sessionParams.customer_email = email;
+      }
+      session = await stripe.checkout.sessions.create(sessionParams);
     } catch (e: any) {
       const msg = String(e?.message || "");
       console.warn("[Checkout POST] erro ao criar sessão com métodos solicitados:", msg, "— tentando fallback para cartão apenas.");
@@ -471,15 +475,12 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
           console.warn('[Checkout POST] fallback: não foi possível preparar Customer para prefill:', String((e as any)?.message || e));
         }
 
-        session = await stripe.checkout.sessions.create({
+        const fallbackParams: Stripe.Checkout.SessionCreateParams = {
           mode: "payment",
           payment_method_types: ["card"],
           locale: "pt-BR",
           billing_address_collection: 'required',
           shipping_address_collection: { allowed_countries: allowedCountriesPostFallback },
-          customer: customerId,
-          customer_email: customerId ? undefined : email,
-          customer_update: customerId ? { address: 'auto', shipping: 'auto' } : undefined,
           shipping_options: (() => {
             const rateId = process.env.SHIPPING_RATE_ID;
             if (rateId && rateId.trim().length > 0) {
@@ -522,7 +523,14 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
             quantity: 1,
           },
         ],
-        });
+        };
+        if (customerId) {
+          fallbackParams.customer = customerId;
+          fallbackParams.customer_update = { address: 'auto', shipping: 'auto' };
+        } else if (email) {
+          fallbackParams.customer_email = email;
+        }
+        session = await stripe.checkout.sessions.create(fallbackParams);
       } catch (e2: any) {
         console.error('[Checkout POST] fallback cartão falhou', String(e2?.message || e2));
         throw e2;
