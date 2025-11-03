@@ -50,12 +50,18 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
     const host = req.get("host") || "localhost:8000";
   const origin = `${protocol}://${host}`;
   const appUrl = (process.env.APP_URL || origin).replace(/\/$/, "");
-  // Garante que o success_url tenha o session_id do Stripe quando não fornecido
-  const rawSuccessUrl = (process.env.CHECKOUT_SUCCESS_URL || `${appUrl}/`).replace(/\/$/, "");
+  // Normaliza URLs: se variáveis de ambiente forem relativas, prefixa com appUrl
+  const rawSuccessUrlEnv = (process.env.CHECKOUT_SUCCESS_URL || `${appUrl}/`).replace(/\/$/, "");
+  const rawSuccessUrl = /^https?:\/\//.test(rawSuccessUrlEnv)
+    ? rawSuccessUrlEnv
+    : `${appUrl}${rawSuccessUrlEnv.startsWith('/') ? '' : '/'}${rawSuccessUrlEnv}`;
   const successUrl = /\{CHECKOUT_SESSION_ID\}/.test(rawSuccessUrl) || /session_id=/.test(rawSuccessUrl)
     ? rawSuccessUrl
     : `${rawSuccessUrl}${rawSuccessUrl.includes('?') ? '&' : '?'}session_id={CHECKOUT_SESSION_ID}`;
-  const cancelUrl = (process.env.CHECKOUT_CANCEL_URL || `${appUrl}/pages/carrinho.html`).replace(/\/$/, "");
+  const rawCancelUrlEnv = (process.env.CHECKOUT_CANCEL_URL || `${appUrl}/pages/carrinho.html`).replace(/\/$/, "");
+  const cancelUrl = /^https?:\/\//.test(rawCancelUrlEnv)
+    ? rawCancelUrlEnv
+    : `${appUrl}${rawCancelUrlEnv.startsWith('/') ? '' : '/'}${rawCancelUrlEnv}`;
 
     const amountInCents = Math.round(total * 100);
     const boletoExpiresDaysRaw = parseInt(String(process.env.BOLETO_EXPIRES_AFTER_DAYS ?? '3'), 10);
@@ -77,13 +83,35 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
         mode: "payment",
         payment_method_types: paymentMethods as any,
         locale: "pt-BR",
+        billing_address_collection: 'required',
+        shipping_address_collection: { allowed_countries: String(process.env.SHIPPING_ALLOWED_COUNTRIES || 'BR').split(',').map(c => c.trim().toUpperCase()).filter(Boolean) },
+        shipping_options: (() => {
+          const rateId = process.env.SHIPPING_RATE_ID;
+          if (rateId && rateId.trim().length > 0) {
+            return [{ shipping_rate: rateId }];
+          }
+          const fixedCentsRaw = parseInt(String(process.env.SHIPPING_FIXED_AMOUNT_CENTS ?? '0'), 10);
+          const fixedCents = Number.isFinite(fixedCentsRaw) && fixedCentsRaw >= 0 ? fixedCentsRaw : 0;
+          const displayName = String(process.env.SHIPPING_DISPLAY_NAME || 'Entrega padrão');
+          return [{
+            shipping_rate_data: {
+              display_name: displayName,
+              type: 'fixed_amount',
+              fixed_amount: { amount: fixedCents, currency: currency.toLowerCase() },
+              delivery_estimate: {
+                minimum: { unit: 'business_day', value: 3 },
+                maximum: { unit: 'business_day', value: 10 }
+              }
+            }
+          }];
+        })(),
         success_url: successUrl,
         cancel_url: cancelUrl,
         payment_method_options: paymentMethodOptions,
         line_items: [
           {
             price_data: {
-              currency,
+              currency: currency.toLowerCase(),
               product_data: { name: "Pedido Casa de Vinho" },
               unit_amount: amountInCents,
             },
@@ -99,18 +127,40 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
           mode: "payment",
           payment_method_types: ["card"],
           locale: "pt-BR",
+          billing_address_collection: 'required',
+          shipping_address_collection: { allowed_countries: String(process.env.SHIPPING_ALLOWED_COUNTRIES || 'BR').split(',').map(c => c.trim().toUpperCase()).filter(Boolean) },
+          shipping_options: (() => {
+            const rateId = process.env.SHIPPING_RATE_ID;
+            if (rateId && rateId.trim().length > 0) {
+              return [{ shipping_rate: rateId }];
+            }
+            const fixedCentsRaw = parseInt(String(process.env.SHIPPING_FIXED_AMOUNT_CENTS ?? '0'), 10);
+            const fixedCents = Number.isFinite(fixedCentsRaw) && fixedCentsRaw >= 0 ? fixedCentsRaw : 0;
+            const displayName = String(process.env.SHIPPING_DISPLAY_NAME || 'Entrega padrão');
+            return [{
+              shipping_rate_data: {
+                display_name: displayName,
+                type: 'fixed_amount',
+                fixed_amount: { amount: fixedCents, currency: currency.toLowerCase() },
+                delivery_estimate: {
+                  minimum: { unit: 'business_day', value: 3 },
+                  maximum: { unit: 'business_day', value: 10 }
+                }
+              }
+            }];
+          })(),
           success_url: successUrl,
           cancel_url: cancelUrl,
           line_items: [
             {
-              price_data: {
-                currency,
-                product_data: { name: "Pedido Casa de Vinho" },
-                unit_amount: amountInCents,
-              },
-              quantity: 1,
+            price_data: {
+              currency: currency.toLowerCase(),
+              product_data: { name: "Pedido Casa de Vinho" },
+              unit_amount: amountInCents,
             },
-          ],
+            quantity: 1,
+          },
+        ],
         });
       } catch (e2: any) {
         console.error('[Checkout GET] fallback cartão falhou', String(e2?.message || e2));
@@ -174,11 +224,17 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
     const host = req.get("host") || "localhost:8000";
   const origin = `${protocol}://${host}`;
   const appUrl = (process.env.APP_URL || origin).replace(/\/$/, "");
-  const rawSuccessUrl = (process.env.CHECKOUT_SUCCESS_URL || `${appUrl}/`).replace(/\/$/, "");
+  const rawSuccessUrlEnv = (process.env.CHECKOUT_SUCCESS_URL || `${appUrl}/`).replace(/\/$/, "");
+  const rawSuccessUrl = /^https?:\/\//.test(rawSuccessUrlEnv)
+    ? rawSuccessUrlEnv
+    : `${appUrl}${rawSuccessUrlEnv.startsWith('/') ? '' : '/'}${rawSuccessUrlEnv}`;
   const successUrl = /\{CHECKOUT_SESSION_ID\}/.test(rawSuccessUrl) || /session_id=/.test(rawSuccessUrl)
     ? rawSuccessUrl
     : `${rawSuccessUrl}${rawSuccessUrl.includes('?') ? '&' : '?'}session_id={CHECKOUT_SESSION_ID}`;
-  const cancelUrl = (process.env.CHECKOUT_CANCEL_URL || `${appUrl}/pages/carrinho.html`).replace(/\/$/, "");
+  const rawCancelUrlEnv = (process.env.CHECKOUT_CANCEL_URL || `${appUrl}/pages/carrinho.html`).replace(/\/$/, "");
+  const cancelUrl = /^https?:\/\//.test(rawCancelUrlEnv)
+    ? rawCancelUrlEnv
+    : `${appUrl}${rawCancelUrlEnv.startsWith('/') ? '' : '/'}${rawCancelUrlEnv}`;
 
     const amountInCents = Math.round(total * 100);
     const boletoExpiresDaysRaw = parseInt(String(process.env.BOLETO_EXPIRES_AFTER_DAYS ?? '3'), 10);
@@ -201,6 +257,28 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
         mode: "payment",
         payment_method_types: paymentMethods as any,
         locale: "pt-BR",
+        billing_address_collection: 'required',
+        shipping_address_collection: { allowed_countries: String(process.env.SHIPPING_ALLOWED_COUNTRIES || 'BR').split(',').map(c => c.trim().toUpperCase()).filter(Boolean) },
+        shipping_options: (() => {
+          const rateId = process.env.SHIPPING_RATE_ID;
+          if (rateId && rateId.trim().length > 0) {
+            return [{ shipping_rate: rateId }];
+          }
+          const fixedCentsRaw = parseInt(String(process.env.SHIPPING_FIXED_AMOUNT_CENTS ?? '0'), 10);
+          const fixedCents = Number.isFinite(fixedCentsRaw) && fixedCentsRaw >= 0 ? fixedCentsRaw : 0;
+          const displayName = String(process.env.SHIPPING_DISPLAY_NAME || 'Entrega padrão');
+          return [{
+            shipping_rate_data: {
+              display_name: displayName,
+              type: 'fixed_amount',
+              fixed_amount: { amount: fixedCents, currency: currency.toLowerCase() },
+              delivery_estimate: {
+                minimum: { unit: 'business_day', value: 3 },
+                maximum: { unit: 'business_day', value: 10 }
+              }
+            }
+          }];
+        })(),
         success_url: successUrl,
         cancel_url: cancelUrl,
         payment_method_options: paymentMethodOptions,
@@ -211,7 +289,7 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
         line_items: [
           {
             price_data: {
-              currency,
+              currency: currency.toLowerCase(),
               product_data: { name: "Pedido Casa de Vinho" },
               unit_amount: amountInCents,
             },
@@ -227,6 +305,28 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
           mode: "payment",
           payment_method_types: ["card"],
           locale: "pt-BR",
+          billing_address_collection: 'required',
+          shipping_address_collection: { allowed_countries: String(process.env.SHIPPING_ALLOWED_COUNTRIES || 'BR').split(',').map(c => c.trim().toUpperCase()).filter(Boolean) },
+          shipping_options: (() => {
+            const rateId = process.env.SHIPPING_RATE_ID;
+            if (rateId && rateId.trim().length > 0) {
+              return [{ shipping_rate: rateId }];
+            }
+            const fixedCentsRaw = parseInt(String(process.env.SHIPPING_FIXED_AMOUNT_CENTS ?? '0'), 10);
+            const fixedCents = Number.isFinite(fixedCentsRaw) && fixedCentsRaw >= 0 ? fixedCentsRaw : 0;
+            const displayName = String(process.env.SHIPPING_DISPLAY_NAME || 'Entrega padrão');
+            return [{
+              shipping_rate_data: {
+                display_name: displayName,
+                type: 'fixed_amount',
+                fixed_amount: { amount: fixedCents, currency: currency.toLowerCase() },
+                delivery_estimate: {
+                  minimum: { unit: 'business_day', value: 3 },
+                  maximum: { unit: 'business_day', value: 10 }
+                }
+              }
+            }];
+          })(),
           success_url: successUrl,
           cancel_url: cancelUrl,
           metadata: {
@@ -235,14 +335,14 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
           },
           line_items: [
             {
-              price_data: {
-                currency,
-                product_data: { name: "Pedido Casa de Vinho" },
-                unit_amount: amountInCents,
-              },
-              quantity: 1,
+            price_data: {
+              currency: currency.toLowerCase(),
+              product_data: { name: "Pedido Casa de Vinho" },
+              unit_amount: amountInCents,
             },
-          ],
+            quantity: 1,
+          },
+        ],
         });
       } catch (e2: any) {
         console.error('[Checkout POST] fallback cartão falhou', String(e2?.message || e2));

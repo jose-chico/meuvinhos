@@ -90,6 +90,10 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
         metadata: {
           stripeMetadata: paymentIntent.metadata,
           sessionMetadata: session?.metadata || {},
+          shippingAddress: session?.customer_details?.address || null,
+          shippingPhone: session?.customer_details?.phone || null,
+          shippingName: session?.customer_details?.name || null,
+          shippingAmount: (session as any)?.shipping_cost?.amount_total ?? null,
         },
         paidAt: new Date(),
       },
