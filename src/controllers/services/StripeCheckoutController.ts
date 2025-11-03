@@ -79,12 +79,19 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
       if (paymentMethods.includes('boleto')) {
         paymentMethodOptions.boleto = { expires_after_days: boletoExpiresDays };
       }
+      // Tipar explicitamente os países permitidos para evitar erro TS (AllowedCountry[])
+      const allowedCountriesGet = (
+        String(process.env.SHIPPING_ALLOWED_COUNTRIES || 'BR')
+          .split(',')
+          .map(c => c.trim().toUpperCase())
+          .filter(Boolean)
+      ) as Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[];
       session = await stripe.checkout.sessions.create({
         mode: "payment",
         payment_method_types: paymentMethods as any,
         locale: "pt-BR",
         billing_address_collection: 'required',
-        shipping_address_collection: { allowed_countries: String(process.env.SHIPPING_ALLOWED_COUNTRIES || 'BR').split(',').map(c => c.trim().toUpperCase()).filter(Boolean) },
+        shipping_address_collection: { allowed_countries: allowedCountriesGet },
         shipping_options: (() => {
           const rateId = process.env.SHIPPING_RATE_ID;
           if (rateId && rateId.trim().length > 0) {
@@ -123,12 +130,18 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
       const msg = String(e?.message || "");
       console.warn("[Checkout GET] erro ao criar sessão com métodos solicitados:", msg, "— tentando fallback para cartão apenas.");
       try {
+        const allowedCountriesGetFallback = (
+          String(process.env.SHIPPING_ALLOWED_COUNTRIES || 'BR')
+            .split(',')
+            .map(c => c.trim().toUpperCase())
+            .filter(Boolean)
+        ) as Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[];
         session = await stripe.checkout.sessions.create({
           mode: "payment",
           payment_method_types: ["card"],
           locale: "pt-BR",
           billing_address_collection: 'required',
-          shipping_address_collection: { allowed_countries: String(process.env.SHIPPING_ALLOWED_COUNTRIES || 'BR').split(',').map(c => c.trim().toUpperCase()).filter(Boolean) },
+          shipping_address_collection: { allowed_countries: allowedCountriesGetFallback },
           shipping_options: (() => {
             const rateId = process.env.SHIPPING_RATE_ID;
             if (rateId && rateId.trim().length > 0) {
@@ -253,12 +266,18 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
       if (paymentMethods.includes('boleto')) {
         paymentMethodOptions.boleto = { expires_after_days: boletoExpiresDays };
       }
+      const allowedCountriesPost = (
+        String(process.env.SHIPPING_ALLOWED_COUNTRIES || 'BR')
+          .split(',')
+          .map(c => c.trim().toUpperCase())
+          .filter(Boolean)
+      ) as Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[];
       session = await stripe.checkout.sessions.create({
         mode: "payment",
         payment_method_types: paymentMethods as any,
         locale: "pt-BR",
         billing_address_collection: 'required',
-        shipping_address_collection: { allowed_countries: String(process.env.SHIPPING_ALLOWED_COUNTRIES || 'BR').split(',').map(c => c.trim().toUpperCase()).filter(Boolean) },
+        shipping_address_collection: { allowed_countries: allowedCountriesPost },
         shipping_options: (() => {
           const rateId = process.env.SHIPPING_RATE_ID;
           if (rateId && rateId.trim().length > 0) {
@@ -301,12 +320,18 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
       const msg = String(e?.message || "");
       console.warn("[Checkout POST] erro ao criar sessão com métodos solicitados:", msg, "— tentando fallback para cartão apenas.");
       try {
+        const allowedCountriesPostFallback = (
+          String(process.env.SHIPPING_ALLOWED_COUNTRIES || 'BR')
+            .split(',')
+            .map(c => c.trim().toUpperCase())
+            .filter(Boolean)
+        ) as Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[];
         session = await stripe.checkout.sessions.create({
           mode: "payment",
           payment_method_types: ["card"],
           locale: "pt-BR",
           billing_address_collection: 'required',
-          shipping_address_collection: { allowed_countries: String(process.env.SHIPPING_ALLOWED_COUNTRIES || 'BR').split(',').map(c => c.trim().toUpperCase()).filter(Boolean) },
+          shipping_address_collection: { allowed_countries: allowedCountriesPostFallback },
           shipping_options: (() => {
             const rateId = process.env.SHIPPING_RATE_ID;
             if (rateId && rateId.trim().length > 0) {
