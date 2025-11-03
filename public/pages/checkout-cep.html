@@ -22,7 +22,6 @@
   <body>
     <div class="card">
       <h2>Endereço e pagamento</h2>
-      <p class="hint">Use seu CEP para preencher automaticamente o endereço antes de continuar para o Stripe Checkout.</p>
 
       <form id="form">
         <div class="row">
@@ -75,13 +74,7 @@
           </div>
         </div>
 
-        <div class="row">
-          <div class="col">
-            <label for="total">Total (R$)</label>
-            <input id="total" name="total" type="text" placeholder="Ex: 99,90" />
-            <div class="hint">Se vier do carrinho, pode ser preenchido via query (?total=99.90).</div>
-          </div>
-        </div>
+        
 
         <div id="msg" class="error" style="display:none"></div>
         <div id="ok" class="success" style="display:none"></div>
@@ -118,12 +111,8 @@
         return data;
       }
 
-      // Preenche total via query string, se existir
-      (function initTotal() {
-        const params = new URLSearchParams(location.search);
-        const total = params.get('total');
-        if (total) $('#total').value = total;
-      })();
+      // Captura total via query string (vindo do carrinho)
+      const totalFromQuery = new URLSearchParams(location.search).get('total');
 
       // Máscara e busca CEP
       $('#cep').addEventListener('input', async (e) => {
@@ -165,10 +154,10 @@
           const cep = $('#cep').value.replace(/\D/g, '');
           const numero = $('#numero').value.trim();
           const complemento = $('#complemento').value.trim();
-          const totalStr = $('#total').value.trim();
+          const totalStr = totalFromQuery ? String(totalFromQuery).trim() : '';
           if (!name || !email) { setMessage('error', 'Informe nome e e-mail.'); btn.disabled = false; return; }
           if (cep.length !== 8) { setMessage('error', 'Informe um CEP válido com 8 dígitos.'); btn.disabled = false; return; }
-          if (!totalStr) { setMessage('error', 'Informe o total (ex: 99,90).'); btn.disabled = false; return; }
+          // Total é obtido do carrinho via query; não exigir no formulário
 
           const body = {
             name,
@@ -176,9 +165,9 @@
             cep,
             numero,
             complemento,
-            total: totalStr,
             currency: 'BRL',
           };
+          if (totalStr) body.total = totalStr;
 
           const r = await fetch('/checkout/stripe', {
             method: 'POST',

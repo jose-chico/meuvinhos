@@ -84,7 +84,7 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
   const successUrl = /\{CHECKOUT_SESSION_ID\}/.test(rawSuccessUrl) || /session_id=/.test(rawSuccessUrl)
     ? rawSuccessUrl
     : `${rawSuccessUrl}${rawSuccessUrl.includes('?') ? '&' : '?'}session_id={CHECKOUT_SESSION_ID}`;
-  const rawCancelUrlEnv = (process.env.CHECKOUT_CANCEL_URL || `${appUrl}/pages/carrinho.html`).replace(/\/$/, "");
+  const rawCancelUrlEnv = (process.env.CHECKOUT_CANCEL_URL || `${appUrl}/pages/checkout-cep.html`).replace(/\/$/, "");
   const cancelUrl = /^https?:\/\//.test(rawCancelUrlEnv)
     ? rawCancelUrlEnv
     : `${appUrl}${rawCancelUrlEnv.startsWith('/') ? '' : '/'}${rawCancelUrlEnv}`;
@@ -270,7 +270,7 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
   const successUrl = /\{CHECKOUT_SESSION_ID\}/.test(rawSuccessUrl) || /session_id=/.test(rawSuccessUrl)
     ? rawSuccessUrl
     : `${rawSuccessUrl}${rawSuccessUrl.includes('?') ? '&' : '?'}session_id={CHECKOUT_SESSION_ID}`;
-  const rawCancelUrlEnv = (process.env.CHECKOUT_CANCEL_URL || `${appUrl}/pages/carrinho.html`).replace(/\/$/, "");
+  const rawCancelUrlEnv = (process.env.CHECKOUT_CANCEL_URL || `${appUrl}/pages/checkout-cep.html`).replace(/\/$/, "");
   const cancelUrl = /^https?:\/\//.test(rawCancelUrlEnv)
     ? rawCancelUrlEnv
     : `${appUrl}${rawCancelUrlEnv.startsWith('/') ? '' : '/'}${rawCancelUrlEnv}`;

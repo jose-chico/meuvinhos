@@ -53,47 +53,18 @@ document.addEventListener("DOMContentLoaded", () => {
 		btnFinalizar.textContent = "Finalizar compra";
 	}
 
-    btnFinalizar.addEventListener("click", async () => {
+    btnFinalizar.addEventListener("click", () => {
         if (carrinho.length === 0) {
             msg.style.color = "red";
             msg.textContent = "Adicione produtos antes de finalizar a compra.";
             return;
         }
-        // Calcula total atual (preço numérico)
+        // Calcula total atual (preço numérico) e envia para página de CEP
         const total = carrinho.reduce((acc, p) => acc + (Number(p.preco) || 0), 0);
-
-        msg.style.color = "#2563eb"; // azul
-        msg.textContent = "Iniciando pagamento...";
-
-        try {
-            const res = await fetch(`${API_URL}/checkout/stripe`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    total: Number(total.toFixed(2)),
-                    currency: "BRL",
-                    products: carrinho
-                })
-            });
-            const data = await res.json();
-
-            if (!res.ok) {
-                msg.style.color = "red";
-                msg.textContent = data.message || "Falha ao iniciar pagamento.";
-                return;
-            }
-
-            // Redireciona para Stripe Checkout
-            window.location.href = data.url;
-
-            // Opcional: limpar carrinho local após iniciar checkout
-            carrinho = [];
-            salvarCarrinho();
-            renderizarCarrinho();
-        } catch {
-            msg.style.color = "red";
-            msg.textContent = "Erro de conexão ao iniciar pagamento.";
-        }
+        const totalParam = encodeURIComponent(Number(total.toFixed(2)));
+        msg.style.color = "#2563eb";
+        msg.textContent = "Abrindo endereço para pagamento...";
+        window.location.href = `/pages/checkout-cep.html?total=${totalParam}`;
     });
 
 	renderizarCarrinho();
