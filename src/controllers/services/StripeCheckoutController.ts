@@ -83,6 +83,27 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
         mode: "payment",
         payment_method_types: paymentMethods as any,
         locale: "pt-BR",
+        shipping_address_collection: { allowed_countries: String(process.env.SHIPPING_ALLOWED_COUNTRIES || 'BR').split(',').map(c => c.trim().toUpperCase()).filter(Boolean) },
+        shipping_options: (() => {
+          const rateId = process.env.SHIPPING_RATE_ID;
+          if (rateId && rateId.trim().length > 0) {
+            return [{ shipping_rate: rateId }];
+          }
+          const fixedCentsRaw = parseInt(String(process.env.SHIPPING_FIXED_AMOUNT_CENTS ?? '0'), 10);
+          const fixedCents = Number.isFinite(fixedCentsRaw) && fixedCentsRaw >= 0 ? fixedCentsRaw : 0;
+          const displayName = String(process.env.SHIPPING_DISPLAY_NAME || 'Entrega padrão');
+          return [{
+            shipping_rate_data: {
+              display_name: displayName,
+              type: 'fixed_amount',
+              fixed_amount: { amount: fixedCents, currency },
+              delivery_estimate: {
+                minimum: { unit: 'business_day', value: 3 },
+                maximum: { unit: 'business_day', value: 10 }
+              }
+            }
+          }];
+        })(),
         success_url: successUrl,
         cancel_url: cancelUrl,
         payment_method_options: paymentMethodOptions,
@@ -105,6 +126,27 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
           mode: "payment",
           payment_method_types: ["card"],
           locale: "pt-BR",
+          shipping_address_collection: { allowed_countries: String(process.env.SHIPPING_ALLOWED_COUNTRIES || 'BR').split(',').map(c => c.trim().toUpperCase()).filter(Boolean) },
+          shipping_options: (() => {
+            const rateId = process.env.SHIPPING_RATE_ID;
+            if (rateId && rateId.trim().length > 0) {
+              return [{ shipping_rate: rateId }];
+            }
+            const fixedCentsRaw = parseInt(String(process.env.SHIPPING_FIXED_AMOUNT_CENTS ?? '0'), 10);
+            const fixedCents = Number.isFinite(fixedCentsRaw) && fixedCentsRaw >= 0 ? fixedCentsRaw : 0;
+            const displayName = String(process.env.SHIPPING_DISPLAY_NAME || 'Entrega padrão');
+            return [{
+              shipping_rate_data: {
+                display_name: displayName,
+                type: 'fixed_amount',
+                fixed_amount: { amount: fixedCents, currency },
+                delivery_estimate: {
+                  minimum: { unit: 'business_day', value: 3 },
+                  maximum: { unit: 'business_day', value: 10 }
+                }
+              }
+            }];
+          })(),
           success_url: successUrl,
           cancel_url: cancelUrl,
           line_items: [
@@ -213,6 +255,27 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
         mode: "payment",
         payment_method_types: paymentMethods as any,
         locale: "pt-BR",
+        shipping_address_collection: { allowed_countries: String(process.env.SHIPPING_ALLOWED_COUNTRIES || 'BR').split(',').map(c => c.trim().toUpperCase()).filter(Boolean) },
+        shipping_options: (() => {
+          const rateId = process.env.SHIPPING_RATE_ID;
+          if (rateId && rateId.trim().length > 0) {
+            return [{ shipping_rate: rateId }];
+          }
+          const fixedCentsRaw = parseInt(String(process.env.SHIPPING_FIXED_AMOUNT_CENTS ?? '0'), 10);
+          const fixedCents = Number.isFinite(fixedCentsRaw) && fixedCentsRaw >= 0 ? fixedCentsRaw : 0;
+          const displayName = String(process.env.SHIPPING_DISPLAY_NAME || 'Entrega padrão');
+          return [{
+            shipping_rate_data: {
+              display_name: displayName,
+              type: 'fixed_amount',
+              fixed_amount: { amount: fixedCents, currency },
+              delivery_estimate: {
+                minimum: { unit: 'business_day', value: 3 },
+                maximum: { unit: 'business_day', value: 10 }
+              }
+            }
+          }];
+        })(),
         success_url: successUrl,
         cancel_url: cancelUrl,
         payment_method_options: paymentMethodOptions,
@@ -239,6 +302,27 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
           mode: "payment",
           payment_method_types: ["card"],
           locale: "pt-BR",
+          shipping_address_collection: { allowed_countries: String(process.env.SHIPPING_ALLOWED_COUNTRIES || 'BR').split(',').map(c => c.trim().toUpperCase()).filter(Boolean) },
+          shipping_options: (() => {
+            const rateId = process.env.SHIPPING_RATE_ID;
+            if (rateId && rateId.trim().length > 0) {
+              return [{ shipping_rate: rateId }];
+            }
+            const fixedCentsRaw = parseInt(String(process.env.SHIPPING_FIXED_AMOUNT_CENTS ?? '0'), 10);
+            const fixedCents = Number.isFinite(fixedCentsRaw) && fixedCentsRaw >= 0 ? fixedCentsRaw : 0;
+            const displayName = String(process.env.SHIPPING_DISPLAY_NAME || 'Entrega padrão');
+            return [{
+              shipping_rate_data: {
+                display_name: displayName,
+                type: 'fixed_amount',
+                fixed_amount: { amount: fixedCents, currency },
+                delivery_estimate: {
+                  minimum: { unit: 'business_day', value: 3 },
+                  maximum: { unit: 'business_day', value: 10 }
+                }
+              }
+            }];
+          })(),
           success_url: successUrl,
           cancel_url: cancelUrl,
           metadata: {
