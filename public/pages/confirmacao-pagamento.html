@@ -1,323 +1,74 @@
-<!DOCTYPE html>
-<html lang="pt-BR" data-theme="dark">
+<!doctype html>
+<html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Confirmação de Pagamento - Casa de Vinho 🍷</title>
-  <link rel="stylesheet" href="style.css" />
-  <script src="https://kit.fontawesome.com/9e62b207e5.js" crossorigin="anonymous"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pagamento confirmado · Casa de Vinho</title>
   <style>
-    .receipt-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 2rem;
-      margin: 2rem auto;
-      max-width: 600px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    .receipt-header {
-      text-align: center;
-      border-bottom: 2px solid var(--border-color);
-      padding-bottom: 1rem;
-      margin-bottom: 1.5rem;
-    }
-    .receipt-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.5rem 0;
-      border-bottom: 1px solid var(--border-color-light);
-    }
-    .receipt-row:last-child {
-      border-bottom: none;
-    }
-    .receipt-label {
-      font-weight: 500;
-      color: var(--text-secondary);
-    }
-    .receipt-value {
-      font-weight: 600;
-      color: var(--text-primary);
-    }
-    .receipt-total {
-      background: var(--accent-bg);
-      padding: 1rem;
-      border-radius: 8px;
-      margin: 1rem 0;
-      text-align: center;
-    }
-    .receipt-products {
-      margin: 1.5rem 0;
-    }
-    .product-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.75rem;
-      background: var(--bg-secondary);
-      border-radius: 6px;
-      margin-bottom: 0.5rem;
-    }
-    .product-name {
-      font-weight: 500;
-    }
-    .product-price {
-      font-weight: 600;
-      color: var(--accent-color);
-    }
-    .loading-state {
-      text-align: center;
-      padding: 2rem;
-      color: var(--text-secondary);
-    }
-    .error-state {
-      text-align: center;
-      padding: 2rem;
-      color: #ef4444;
-    }
-    .status-badge {
-      display: inline-block;
-      padding: 0.25rem 0.75rem;
-      border-radius: 20px;
-      font-size: 0.875rem;
-      font-weight: 600;
-      text-transform: uppercase;
-    }
-    .status-succeeded {
-      background: #22c55e;
-      color: white;
-    }
-    .status-pending {
-      background: #f59e0b;
-      color: white;
-    }
+    :root { --primary:#7d1737; --bg:#fafafa; --card:#fff; --muted:#666; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: var(--bg); color:#222; }
+    .wrap { max-width: 720px; margin: 40px auto; padding: 24px; background: var(--card); border: 1px solid #eee; border-radius: 10px; }
+    h1 { margin: 0 0 12px; font-size: 24px; }
+    p { margin: 10px 0; }
+    .muted { color: var(--muted); font-size: 14px; }
+    .actions { margin-top: 22px; display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn { padding: 10px 16px; border-radius: 8px; border: 1px solid #ccc; background: #f5f5f5; cursor: pointer; }
+    .btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .summary { margin-top: 18px; padding: 12px; background:#f9f9f9; border:1px solid #eee; border-radius:8px; }
+    code { background:#f0f0f0; padding:2px 6px; border-radius:6px; }
   </style>
+  <meta name="robots" content="noindex">
 </head>
 <body>
-  <div class="frete-bar">🚚 Frete grátis acima de R$ 199,00 Brasil inteiro</div>
+  <div class="wrap">
+    <h1>Pagamento confirmado ✅</h1>
+    <p>Obrigado pela sua compra! Estamos processando seu pedido.</p>
 
-  <header class="topo">
-    <div class="topo-left">
-      <a class="logo" href="index.html">🍷 Casa de Vinho</a>
-    </div>
-    <div class="topo-right">
-      <button id="theme-toggle" class="btn-theme" title="Alternar tema">
-        <i class="fa-solid fa-moon"></i>
-      </button>
-    </div>
-  </header>
-
-  <main class="checkout-page">
-    <!-- Estado de carregamento -->
-    <div id="loading-state" class="receipt-card loading-state">
-      <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 1rem;"></i>
-      <p>Carregando dados do pagamento...</p>
+    <div class="summary">
+      <p class="muted">ID da sessão: <code id="sessionId">carregando…</code></p>
+      <p class="muted">Resumo do carrinho:<br><span id="cartSummary">lendo…</span></p>
     </div>
 
-    <!-- Estado de erro -->
-    <div id="error-state" class="receipt-card error-state" style="display: none;">
-      <i class="fa-solid fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
-      <p>Não foi possível carregar os dados do pagamento.</p>
-      <button id="btn-retry" class="checkout-btn-big" style="margin-top: 1rem;">
-        <i class="fa-solid fa-refresh"></i> Tentar novamente
-      </button>
+    <p class="muted">Você será redirecionado para a página inicial em alguns segundos.</p>
+
+    <div class="actions">
+      <button class="btn primary" onclick="goHome()">Ir para a página inicial</button>
+      <button class="btn" onclick="cancelRedirect()">Cancelar redirecionamento</button>
     </div>
-
-    <!-- Recibo detalhado -->
-    <div id="receipt-card" class="receipt-card" style="display: none;">
-      <div class="receipt-header">
-        <h1 id="receipt-title"><i class="fa-solid fa-check-circle" id="receipt-icon" style="color: #22c55e;"></i> Pagamento realizado com sucesso!</h1>
-        <p style="color: var(--text-secondary); margin-top: 0.5rem;" id="receipt-subtitle">Obrigado pela sua compra</p>
-      </div>
-
-      <div class="receipt-row">
-        <span class="receipt-label">Número do Pedido:</span>
-        <span class="receipt-value" id="order-number">#PED-2024-001</span>
-      </div>
-
-      <div class="receipt-row">
-        <span class="receipt-label">Data do Pagamento:</span>
-        <span class="receipt-value" id="payment-date">-</span>
-      </div>
-
-      <div class="receipt-row">
-        <span class="receipt-label">Status:</span>
-        <span class="status-badge status-succeeded" id="payment-status">Pago</span>
-      </div>
-
-      <div class="receipt-row">
-        <span class="receipt-label">Método de Pagamento:</span>
-        <span class="receipt-value" id="payment-method">-</span>
-      </div>
-
-      <div class="receipt-row" id="customer-info" style="display: none;">
-        <span class="receipt-label">Cliente:</span>
-        <span class="receipt-value" id="customer-name">-</span>
-      </div>
-
-      <div class="receipt-products">
-        <h3 style="margin-bottom: 1rem; color: var(--text-primary);">Produtos Comprados:</h3>
-        <div id="products-list">
-          <!-- Produtos serão inseridos aqui -->
-        </div>
-      </div>
-
-      <div class="receipt-total">
-        <h2 style="margin: 0; color: var(--text-primary);">
-          Total Pago: <span id="total-amount">R$ 0,00</span>
-        </h2>
-      </div>
-      
-      <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem;">
-        <button id="btn-voltar-inicio" class="checkout-btn-big">
-          <i class="fa-solid fa-home"></i> Voltar ao início
-        </button>
-        <button id="btn-novo-pedido" class="checkout-btn-big" style="background: var(--accent-contrast);">
-          <i class="fa-solid fa-cart-shopping"></i> Novo pedido
-        </button>
-      </div>
-    </div>
-  </main>
-
-  <footer class="footer">
-    © 2025 Casa de Vinho · Qualidade em cada taça 🍇
-  </footer>
+  </div>
 
   <script>
-    // Base da API
-    const API_URL = (/^https?:/i.test(window.location.origin)) ? window.location.origin : "http://localhost:8000";
-    
-    // Elementos DOM
-    const loadingState = document.getElementById('loading-state');
-    const errorState = document.getElementById('error-state');
-    const receiptCard = document.getElementById('receipt-card');
-    
-    // Função para carregar dados do pagamento
-    async function loadPaymentData() {
-      try {
-        // Extrair session_id da URL
-        const params = new URLSearchParams(window.location.search);
-        const sessionId = params.get('session_id');
-        
-        if (!sessionId) {
-          throw new Error('Session ID não encontrado na URL');
-        }
+    // Lê o session_id anexado pelo Stripe ao success_url
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get('session_id');
+    document.getElementById('sessionId').textContent = sessionId || 'N/A';
 
-        // Buscar dados do pagamento
-        const response = await fetch(`${API_URL}/payment/${sessionId}`);
-        
-        if (!response.ok) {
-          throw new Error('Pagamento não encontrado');
-        }
-
-        const payment = await response.json();
-        
-        // Exibir dados do pagamento
-        displayPaymentData(payment);
-        
-      } catch (error) {
-        console.error('Erro ao carregar pagamento:', error);
-        showError();
-      }
-    }
-
-    // Função para exibir dados do pagamento
-    function displayPaymentData(payment) {
-      // Ocultar loading e mostrar recibo
-      loadingState.style.display = 'none';
-      errorState.style.display = 'none';
-      receiptCard.style.display = 'block';
-
-      // Preencher dados básicos
-      document.getElementById('order-number').textContent = `#${payment.id.slice(-8).toUpperCase()}`;
-      
-      // Formatar data
-      const paymentDate = new Date(payment.paidAt || payment.createdAt);
-      document.getElementById('payment-date').textContent = paymentDate.toLocaleString('pt-BR');
-      
-      // Status e título dinâmico
-      const statusEl = document.getElementById('payment-status');
-      const isPaid = payment.status === 'succeeded' || payment.payment_status === 'paid';
-      statusEl.textContent = isPaid ? 'Pago' : 'Pendente';
-      statusEl.className = `status-badge ${isPaid ? 'status-succeeded' : 'status-pending'}`;
-      const titleEl = document.getElementById('receipt-title');
-      const iconEl = document.getElementById('receipt-icon');
-      const subtitleEl = document.getElementById('receipt-subtitle');
-      if (isPaid) {
-        titleEl.innerHTML = `<i class="fa-solid fa-check-circle" id="receipt-icon" style="color: #22c55e;"></i> Pagamento realizado com sucesso!`;
-        subtitleEl.textContent = 'Obrigado pela sua compra';
+    // Mostra um resumo simples do carrinho e limpa para evitar recompras acidentais
+    try {
+      const raw = localStorage.getItem('carrinho');
+      if (raw) {
+        const carrinho = JSON.parse(raw);
+        const total = (carrinho?.reduce((acc, p) => acc + (typeof p.preco === 'number' ? p.preco : parseFloat(String(p.preco).replace(/\.(?=\d{3}(\D|$))/g, '').replace(',', '.')) || 0), 0) || 0).toFixed(2);
+        const itens = carrinho?.map(p => `${p.nome} (R$ ${Number(p.preco).toFixed ? Number(p.preco).toFixed(2) : p.preco})`).join(', ');
+        document.getElementById('cartSummary').textContent = itens ? `${itens} — Total R$ ${total}` : 'sem itens';
       } else {
-        titleEl.innerHTML = `<i class="fa-solid fa-hourglass-half" id="receipt-icon" style="color: #f59e0b;"></i> Pagamento pendente`;
-        subtitleEl.textContent = 'Seu pedido foi criado. Aguarde a confirmação do pagamento.';
+        document.getElementById('cartSummary').textContent = 'sem itens';
       }
-      
-      // Método de pagamento
-      const methodMap = {
-        'card': 'Cartão de Crédito',
-        'boleto': 'Boleto',
-        'pix': 'PIX',
-        'unknown': 'Não identificado'
-      };
-      document.getElementById('payment-method').textContent = methodMap[payment.paymentMethod] || payment.paymentMethod;
-      
-      // Cliente (se disponível)
-      if (payment.customerName) {
-        document.getElementById('customer-info').style.display = 'flex';
-        document.getElementById('customer-name').textContent = payment.customerName;
-      }
-      
-      // Produtos
-      const productsList = document.getElementById('products-list');
-      if (payment.products && Array.isArray(payment.products) && payment.products.length > 0) {
-        productsList.innerHTML = payment.products.map(product => `
-          <div class="product-item">
-            <span class="product-name">${product.nome || 'Produto'}</span>
-            <span class="product-price">R$ ${parseFloat(product.preco || 0).toFixed(2)}</span>
-          </div>
-        `).join('');
-      } else {
-        productsList.innerHTML = `
-          <div class="product-item">
-            <span class="product-name">Pedido Casa de Vinho</span>
-            <span class="product-price">R$ ${payment.amount.toFixed(2)}</span>
-          </div>
-        `;
-      }
-      
-      // Total
-      const formatted = new Intl.NumberFormat('pt-BR', { 
-        style: 'currency', 
-        currency: payment.currency 
-      }).format(payment.amount);
-      document.getElementById('total-amount').textContent = formatted;
+    } catch (e) {
+      document.getElementById('cartSummary').textContent = 'não foi possível ler o carrinho';
     }
 
-    // Função para mostrar erro
-    function showError() {
-      loadingState.style.display = 'none';
-      receiptCard.style.display = 'none';
-      errorState.style.display = 'block';
-    }
+    // Limpa o carrinho para evitar duplicidade pós-pagamento
+    try { localStorage.removeItem('carrinho'); } catch {}
 
-    // Event listeners
-    document.getElementById('btn-retry').addEventListener('click', () => {
-      errorState.style.display = 'none';
-      loadingState.style.display = 'block';
-      loadPaymentData();
-    });
+    // Redireciona automaticamente após alguns segundos
+    let timer = setTimeout(() => {
+      window.location.href = '/pages/index.html';
+    }, 4000);
 
-    document.getElementById('btn-voltar-inicio').addEventListener('click', () => {
-      window.location.href = 'index.html';
-    });
-
-    document.getElementById('btn-novo-pedido').addEventListener('click', () => {
-      window.location.href = 'index.html';
-    });
-
-    // Carregar dados ao inicializar
-    loadPaymentData();
+    function goHome() { clearTimeout(timer); window.location.href = '/pages/index.html'; }
+    function cancelRedirect() { clearTimeout(timer); alert('Redirecionamento cancelado. Você pode continuar nesta página.'); }
   </script>
-  <script src="tema.js"></script>
 </body>
 </html>
