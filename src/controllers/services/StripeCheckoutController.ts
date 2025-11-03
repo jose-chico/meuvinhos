@@ -1,6 +1,32 @@
 import { Request, Response } from "express";
 import Stripe from "stripe";
 
+// Busca endereço por CEP na ViaCEP e retorna dados básicos
+async function lookupCep(cepRaw: unknown): Promise<null | {
+  cep: string;
+  logradouro?: string;
+  bairro?: string;
+  localidade?: string;
+  uf?: string;
+}> {
+  try {
+    const cep = String(cepRaw || "").replace(/\D/g, "");
+    if (cep.length !== 8) return null;
+    const r = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+    const data = await r.json();
+    if (!data || data.erro) return null;
+    return {
+      cep,
+      logradouro: data.logradouro,
+      bairro: data.bairro,
+      localidade: data.localidade,
+      uf: data.uf,
+    };
+  } catch {
+    return null;
+  }
+}
+
 // Util: tenta converter valores em BRL (suporta strings "99,90")
 function parsePrice(input: any): number {
   if (typeof input === 'number') return input;
@@ -272,12 +298,71 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
           .map(c => c.trim().toUpperCase())
           .filter(Boolean)
       ) as Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[];
+      // Opcional: pré-preencher endereço e email através de Customer, baseado em CEP
+      let customerId: string | undefined;
+      const name = String(req.body?.name || '').trim() || undefined;
+      const email = String(req.body?.email || '').trim() || undefined;
+      const cepRaw = req.body?.cep;
+      const numero = String(req.body?.numero || '').trim() || undefined;
+      const complemento = String(req.body?.complemento || '').trim() || undefined;
+      const via = await lookupCep(cepRaw);
+      let prefillAddress: Stripe.AddressParam | undefined;
+      if (via) {
+        const line1 = [via.logradouro, numero].filter(Boolean).join(', ');
+        prefillAddress = {
+          line1: line1 || undefined,
+          line2: complemento || undefined,
+          city: via.localidade || undefined,
+          state: via.uf || undefined,
+          postal_code: via.cep,
+          country: 'BR',
+        };
+      }
+
+      try {
+        if (email) {
+          const existing = await stripe.customers.list({ email, limit: 1 });
+          const found = existing.data?.[0];
+          if (found) {
+            customerId = found.id;
+            // Atualiza endereço se obtido pelo CEP
+            if (prefillAddress) {
+              await stripe.customers.update(customerId, {
+                name,
+                address: prefillAddress,
+                shipping: name ? { name, address: prefillAddress } : undefined,
+              });
+            }
+          } else {
+            const created = await stripe.customers.create({
+              email,
+              name,
+              address: prefillAddress,
+              shipping: name ? { name, address: prefillAddress } : undefined,
+            });
+            customerId = created.id;
+          }
+        } else if (prefillAddress || name) {
+          const created = await stripe.customers.create({
+            name,
+            address: prefillAddress,
+            shipping: name ? { name, address: prefillAddress } : undefined,
+          });
+          customerId = created.id;
+        }
+      } catch (e) {
+        console.warn('[Checkout POST] não foi possível preparar Customer para prefill:', String((e as any)?.message || e));
+      }
+
       session = await stripe.checkout.sessions.create({
         mode: "payment",
         payment_method_types: paymentMethods as any,
         locale: "pt-BR",
         billing_address_collection: 'required',
         shipping_address_collection: { allowed_countries: allowedCountriesPost },
+        customer: customerId,
+        customer_email: email,
+        customer_update: customerId ? { address: 'auto', shipping: 'auto' } : undefined,
         shipping_options: (() => {
           const rateId = process.env.SHIPPING_RATE_ID;
           if (rateId && rateId.trim().length > 0) {
@@ -304,6 +389,12 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
         metadata: {
           products: JSON.stringify(products),
           total: total.toString(),
+          delivery_cep: via?.cep || undefined,
+          delivery_bairro: via?.bairro || undefined,
+          delivery_city: via?.localidade || undefined,
+          delivery_state: via?.uf || undefined,
+          delivery_line1: prefillAddress?.line1 || undefined,
+          delivery_line2: prefillAddress?.line2 || undefined,
         },
         line_items: [
           {
@@ -326,12 +417,69 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
             .map(c => c.trim().toUpperCase())
             .filter(Boolean)
         ) as Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[];
+        // Repete a lógica de customer no fallback
+        let customerId: string | undefined;
+        const name = String(req.body?.name || '').trim() || undefined;
+        const email = String(req.body?.email || '').trim() || undefined;
+        const cepRaw = req.body?.cep;
+        const numero = String(req.body?.numero || '').trim() || undefined;
+        const complemento = String(req.body?.complemento || '').trim() || undefined;
+        const via = await lookupCep(cepRaw);
+        let prefillAddress: Stripe.AddressParam | undefined;
+        if (via) {
+          const line1 = [via.logradouro, numero].filter(Boolean).join(', ');
+          prefillAddress = {
+            line1: line1 || undefined,
+            line2: complemento || undefined,
+            city: via.localidade || undefined,
+            state: via.uf || undefined,
+            postal_code: via.cep,
+            country: 'BR',
+          };
+        }
+        try {
+          if (email) {
+            const existing = await stripe.customers.list({ email, limit: 1 });
+            const found = existing.data?.[0];
+            if (found) {
+              customerId = found.id;
+              if (prefillAddress) {
+                await stripe.customers.update(customerId, {
+                  name,
+                  address: prefillAddress,
+                  shipping: name ? { name, address: prefillAddress } : undefined,
+                });
+              }
+            } else {
+              const created = await stripe.customers.create({
+                email,
+                name,
+                address: prefillAddress,
+                shipping: name ? { name, address: prefillAddress } : undefined,
+              });
+              customerId = created.id;
+            }
+          } else if (prefillAddress || name) {
+            const created = await stripe.customers.create({
+              name,
+              address: prefillAddress,
+              shipping: name ? { name, address: prefillAddress } : undefined,
+            });
+            customerId = created.id;
+          }
+        } catch (e) {
+          console.warn('[Checkout POST] fallback: não foi possível preparar Customer para prefill:', String((e as any)?.message || e));
+        }
+
         session = await stripe.checkout.sessions.create({
           mode: "payment",
           payment_method_types: ["card"],
           locale: "pt-BR",
           billing_address_collection: 'required',
           shipping_address_collection: { allowed_countries: allowedCountriesPostFallback },
+          customer: customerId,
+          customer_email: email,
+          customer_update: customerId ? { address: 'auto', shipping: 'auto' } : undefined,
           shipping_options: (() => {
             const rateId = process.env.SHIPPING_RATE_ID;
             if (rateId && rateId.trim().length > 0) {
@@ -357,6 +505,12 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
           metadata: {
             products: JSON.stringify(products),
             total: total.toString(),
+            delivery_cep: via?.cep || undefined,
+            delivery_bairro: via?.bairro || undefined,
+            delivery_city: via?.localidade || undefined,
+            delivery_state: via?.uf || undefined,
+            delivery_line1: prefillAddress?.line1 || undefined,
+            delivery_line2: prefillAddress?.line2 || undefined,
           },
           line_items: [
             {
