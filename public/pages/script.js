@@ -113,8 +113,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     const href = `produto.html?nome=${encodeURIComponent(nome)}`;
                     return `<a href="${href}">${nome}</a>`;
                 }).join("");
+                const verTipo = `<a class="submenu-title" href="index.html?tipo=${encodeURIComponent(tipo)}" title="Ver todos ${tipo}">${tipo}</a>`;
                 const verTodos = `<a href="index.html?tipo=${encodeURIComponent(tipo)}" style="color:#aaa">Ver todos ${tipo}</a>`;
-                return `<div class="submenu-column"><div class="submenu-title">${tipo}</div>${links}${verTodos}</div>`;
+                return `<div class="submenu-column">${verTipo}${links}${verTodos}</div>`;
             }).join("");
 
             submenuVinhos.innerHTML = colunasHtml || "<span style='color:#aaa'>Nenhum vinho cadastrado</span>";
