@@ -34,6 +34,20 @@ document.addEventListener("DOMContentLoaded", () => {
 		atualizarContador();
 	}
 
+	// 🔹 Util para normalizar valores em BRL (suporta "99,90")
+	function parsePrecoBRL(valor) {
+		if (typeof valor === "number") return valor;
+		if (typeof valor === "string") {
+			const cleaned = valor
+				.replace(/[^\d.,-]/g, "")
+				.replace(/\.(?=\d{3}(\D|$))/g, "")
+				.replace(",", ".");
+			const num = parseFloat(cleaned);
+			return Number.isFinite(num) ? num : 0;
+		}
+		return 0;
+	}
+
 	// 🔔 Toast temporário
 	function mostrarToast(msg) {
 		const toast = document.createElement("div");
@@ -55,40 +69,60 @@ document.addEventListener("DOMContentLoaded", () => {
 		window.location.href = "carrinho.html";
 	});
 
-	// 📑 Carrega submenu de vinhos dinamicamente
-	async function carregarSubmenu() {
-		if (!submenuVinhos) return;
-		try {
-			const token = localStorage.getItem("token");
-		const response = await fetch(`${API_URL}/produtos`, {
-				headers: { Authorization: token ? `Bearer ${token}` : undefined },
-			});
-			const data = await response.json();
+    // 📑 Carrega submenu de vinhos dinamicamente, agrupando por tipo
+    async function carregarSubmenu() {
+        if (!submenuVinhos) return;
+        try {
+            const token = localStorage.getItem("token");
+            const response = await fetch(`${API_URL}/produtos`, {
+                headers: { Authorization: token ? `Bearer ${token}` : undefined },
+            });
+            const data = await response.json();
 
-			const produtos = Array.isArray(data.produtos) ? data.produtos : [];
+            const produtos = Array.isArray(data.produtos) ? data.produtos : [];
 
-			// Lista simples: somente nomes dos vinhos cadastrados (sem limite)
-			if (produtos.length === 0) {
-				submenuVinhos.innerHTML = "<span style='color:#aaa'>Nenhum vinho cadastrado</span>";
-			} else {
-				const nomesUnicos = Array.from(new Map(produtos.map((p) => [p.nome, p])).values())
-					.map((p) => p.nome)
-					.sort((a, b) => a.localeCompare(b));
+            if (produtos.length === 0) {
+                submenuVinhos.innerHTML = "<span style='color:#aaa'>Nenhum vinho cadastrado</span>";
+                return;
+            }
 
-				const itens = nomesUnicos
-					.map((nome) => {
-						const href = `produto.html?nome=${encodeURIComponent(nome)}`;
-						return `<a href="${href}">${nome}</a>`;
-					})
-					.join("");
+            // Agrupar nomes por tipo de vinho
+            const gruposPorTipo = new Map();
+            for (const p of produtos) {
+                const tipoBruto = (p.tipo || "Outros").trim();
+                // Normaliza capitalização: "tinto" -> "Tinto"
+                const tipo = tipoBruto.charAt(0).toUpperCase() + tipoBruto.slice(1).toLowerCase();
+                if (!gruposPorTipo.has(tipo)) gruposPorTipo.set(tipo, new Set());
+                gruposPorTipo.get(tipo).add(p.nome);
+            }
 
-				submenuVinhos.innerHTML = itens || "<span style='color:#aaa'>Nenhum vinho cadastrado</span>";
-			}
-		} catch (err) {
-			console.error("Erro ao carregar submenu de vinhos", err);
-			submenuVinhos.innerHTML = "<span style='color:red'>Erro ao carregar vinhos</span>";
-		}
-	}
+            // Ordem sugerida para tipos comuns; demais por ordem alfabética
+            const ordemPreferida = ["Tinto", "Branco", "Rosé", "Espumante", "Fortificado", "Sobremesa", "Outros"]; 
+            const tiposOrdenados = Array.from(gruposPorTipo.keys()).sort((a, b) => {
+                const ia = ordemPreferida.indexOf(a);
+                const ib = ordemPreferida.indexOf(b);
+                if (ia !== -1 && ib !== -1) return ia - ib;
+                if (ia !== -1) return -1;
+                if (ib !== -1) return 1;
+                return a.localeCompare(b);
+            });
+
+            const colunasHtml = tiposOrdenados.map((tipo) => {
+                const nomes = Array.from(gruposPorTipo.get(tipo)).sort((a, b) => a.localeCompare(b));
+                const links = nomes.map((nome) => {
+                    const href = `produto.html?nome=${encodeURIComponent(nome)}`;
+                    return `<a href="${href}">${nome}</a>`;
+                }).join("");
+                const verTodos = `<a href="index.html?tipo=${encodeURIComponent(tipo)}" style="color:#aaa">Ver todos ${tipo}</a>`;
+                return `<div class="submenu-column"><div class="submenu-title">${tipo}</div>${links}${verTodos}</div>`;
+            }).join("");
+
+            submenuVinhos.innerHTML = colunasHtml || "<span style='color:#aaa'>Nenhum vinho cadastrado</span>";
+        } catch (err) {
+            console.error("Erro ao carregar submenu de vinhos", err);
+            submenuVinhos.innerHTML = "<span style='color:red'>Erro ao carregar vinhos</span>";
+        }
+    }
 
 	// 📦 Carrega os produtos
 	async function carregarProdutos() {
@@ -126,19 +160,7 @@ document.addEventListener("DOMContentLoaded", () => {
 				return;
 			}
 
-			// 🔹 Util para normalizar valores em BRL (suporta "99,90")
-			function parsePrecoBRL(valor) {
-				if (typeof valor === "number") return valor;
-				if (typeof valor === "string") {
-					const cleaned = valor
-						.replace(/[^\d.,-]/g, "")
-						.replace(/\.(?=\d{3}(\D|$))/g, "")
-						.replace(",", ".");
-					const num = parseFloat(cleaned);
-					return Number.isFinite(num) ? num : 0;
-				}
-				return 0;
-			}
+
 
 			// 🔹 Renderiza os produtos
 			produtos.forEach((produto) => {
@@ -221,10 +243,10 @@ document.addEventListener("DOMContentLoaded", () => {
 		if (!termo) return;
 		window.location.href = `index.html?busca=${encodeURIComponent(termo)}`;
 	}
-	if (searchButton && searchInput) {
-		searchButton.addEventListener("click", enviarBusca);
-		searchInput.addEventListener("keydown", (e) => {
-			if (e.key === "Enter") enviarBusca();
-		});
-	}
+    if (searchButton && searchInput) {
+        searchButton.addEventListener("click", enviarBusca);
+        searchInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") enviarBusca();
+        });
+    }
 });
