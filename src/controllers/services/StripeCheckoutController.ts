@@ -117,7 +117,7 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
         payment_method_types: paymentMethods as any,
         locale: "pt-BR",
         billing_address_collection: 'required',
-        // Removido: nenhuma coleta de endereço de envio e nenhum frete exibido
+        shipping_address_collection: { allowed_countries: allowedCountriesGet },
         success_url: successUrl,
         cancel_url: cancelUrl,
         payment_method_options: paymentMethodOptions,
@@ -147,7 +147,7 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
           payment_method_types: ["card"],
           locale: "pt-BR",
           billing_address_collection: 'required',
-          // Removido: nenhuma coleta de endereço de envio e nenhum frete exibido
+          shipping_address_collection: { allowed_countries: allowedCountriesGetFallback },
           success_url: successUrl,
           cancel_url: cancelUrl,
           line_items: [
@@ -330,7 +330,7 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
         payment_method_types: paymentMethods as any,
         locale: "pt-BR",
         billing_address_collection: 'required',
-        // Removido: nenhuma coleta de endereço de envio e nenhum frete exibido
+        shipping_address_collection: { allowed_countries: allowedCountriesPost },
         success_url: successUrl,
         cancel_url: cancelUrl,
         payment_method_options: paymentMethodOptions,
@@ -433,7 +433,7 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
           payment_method_types: ["card"],
           locale: "pt-BR",
           billing_address_collection: 'required',
-          // Removido: nenhuma coleta de endereço de envio e nenhum frete exibido
+          shipping_address_collection: { allowed_countries: allowedCountriesPostFallback },
           success_url: successUrl,
           cancel_url: cancelUrl,
           metadata: fallbackMetadata,
