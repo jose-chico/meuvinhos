@@ -149,7 +149,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 			let produtos = data.produtos;
 			if (tipoParam) {
-				produtos = produtos.filter((p) => (p.tipo || "").toLowerCase() === tipoParam.toLowerCase());
+				const tipoFiltro = tipoParam.trim().toLowerCase();
+				produtos = produtos.filter((p) => ((p.tipo || "").trim().toLowerCase().includes(tipoFiltro)));
 			}
 			if (buscaParam) {
 				const termo = buscaParam.toLowerCase();
