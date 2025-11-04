@@ -300,9 +300,9 @@ body {
   transition: 0.3s;
 }
 .btn-add-cart {
-  background: linear-gradient(180deg, var(--accent-contrast), #c73030);
+  background: var(--accent-main);
   color: #fff;
-  box-shadow: 0 4px 10px rgba(226,59,59,0.3);
+  box-shadow: 0 4px 10px rgba(216,163,127,0.3);
 }
 .btn-add-cart:hover { filter: brightness(1.05); transform: translateY(-1px); }
 .btn-detalhes {
