@@ -2,30 +2,30 @@
 /* VARIÁVEIS DE TEMA             */
 /* ============================= */
 :root {
-  --bg-page: #0e0e0e;
-  --bg-surface: #1a1a1a;
-  --bg-surface-alt: #ffffff;
+  --bg-page: #0e0e0e; /* fundo escuro próximo ao preto */
+  --bg-surface: #1a1a1a; /* superfície escura */
+  --bg-surface-alt: #1c1a18; /* superfície alternativa com leve tom cobre */
   --text-main: #f5f5f5;
-  --text-muted: #aaaaaa;
-  --accent-main: #8b1e1e; /* vinho profundo */
-  --accent-contrast: #e23b3b; /* vermelho elegante para ações */
-  --accent-soft: rgba(226,59,59,0.08);
+  --text-muted: #c9b7a8; /* texto secundário em tom quente */
+  --accent-main: #a15e3b; /* cobre escuro */
+  --accent-contrast: #d8a37f; /* cobre claro para ações/destaques */
+  --accent-soft: rgba(216,163,127,0.12); /* realce suave em cobre */
   --border-color: rgba(255,255,255,0.08);
   --shadow-card: 0 10px 25px rgba(0,0,0,0.6);
   --success: #3fa43f;
 }
 
 html[data-theme="light"] {
-  --bg-page: #f7f7f8;
-  --bg-surface: #ffffff;
+  --bg-page: #f3e3d5; /* bege cobre claro */
+  --bg-surface: #f6ede5; /* superfície clara quente */
   --bg-surface-alt: #ffffff;
-  --text-main: #111316;
-  --text-muted: #6b7280;
-  --accent-main: #8b1e1e;
-  --accent-contrast: #e23b3b;
-  --accent-soft: rgba(226,59,59,0.07);
-  --border-color: rgba(17,19,22,0.08);
-  --shadow-card: 0 16px 30px rgba(17,19,22,0.08);
+  --text-main: #3a2a1e; /* marrom escuro para contraste no claro */
+  --text-muted: #7b6a5d;
+  --accent-main: #a15e3b;
+  --accent-contrast: #d8a37f;
+  --accent-soft: rgba(216,163,127,0.15);
+  --border-color: rgba(58,42,30,0.15);
+  --shadow-card: 0 16px 30px rgba(58,42,30,0.08);
 }
 
 /* ============================= */
