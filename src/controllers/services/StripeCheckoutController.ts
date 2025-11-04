@@ -117,34 +117,7 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
         payment_method_types: paymentMethods as any,
         locale: "pt-BR",
         billing_address_collection: 'required',
-        shipping_address_collection: { allowed_countries: allowedCountriesGet },
-        shipping_options: (() => {
-          const rateId = process.env.SHIPPING_RATE_ID;
-          if (rateId && rateId.trim().length > 0) {
-            return [{ shipping_rate: rateId }];
-          }
-          const thresholdCentsRaw = parseInt(String(process.env.FREE_SHIPPING_THRESHOLD_CENTS ?? '30000'), 10);
-          const thresholdCents = Number.isFinite(thresholdCentsRaw) && thresholdCentsRaw >= 0 ? thresholdCentsRaw : 30000;
-          const fixedCentsEnvRaw = parseInt(String(process.env.SHIPPING_FIXED_AMOUNT_CENTS ?? '2990'), 10);
-          const fixedCentsEnv = Number.isFinite(fixedCentsEnvRaw) && fixedCentsEnvRaw >= 0 ? fixedCentsEnvRaw : 0;
-          const totalCents = Math.round(total * 100);
-          const isFree = totalCents >= thresholdCents;
-          const fixedCents = isFree ? 0 : fixedCentsEnv;
-          const displayName = String(isFree
-            ? (process.env.SHIPPING_DISPLAY_NAME_FREE || 'Entrega grátis a partir de R$ 300')
-            : (process.env.SHIPPING_DISPLAY_NAME_PAID || 'Entrega padrão'));
-          return [{
-            shipping_rate_data: {
-              display_name: displayName,
-              type: 'fixed_amount',
-              fixed_amount: { amount: fixedCents, currency: currency.toLowerCase() },
-              delivery_estimate: {
-                minimum: { unit: 'business_day', value: 3 },
-                maximum: { unit: 'business_day', value: 10 }
-              }
-            }
-          }];
-        })(),
+        // Removido: nenhuma coleta de endereço de envio e nenhum frete exibido
         success_url: successUrl,
         cancel_url: cancelUrl,
         payment_method_options: paymentMethodOptions,
@@ -174,34 +147,7 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
           payment_method_types: ["card"],
           locale: "pt-BR",
           billing_address_collection: 'required',
-          shipping_address_collection: { allowed_countries: allowedCountriesGetFallback },
-          shipping_options: (() => {
-            const rateId = process.env.SHIPPING_RATE_ID;
-            if (rateId && rateId.trim().length > 0) {
-              return [{ shipping_rate: rateId }];
-            }
-            const thresholdCentsRaw = parseInt(String(process.env.FREE_SHIPPING_THRESHOLD_CENTS ?? '30000'), 10);
-            const thresholdCents = Number.isFinite(thresholdCentsRaw) && thresholdCentsRaw >= 0 ? thresholdCentsRaw : 30000;
-            const fixedCentsEnvRaw = parseInt(String(process.env.SHIPPING_FIXED_AMOUNT_CENTS ?? '2990'), 10);
-            const fixedCentsEnv = Number.isFinite(fixedCentsEnvRaw) && fixedCentsEnvRaw >= 0 ? fixedCentsEnvRaw : 0;
-            const totalCents = Math.round(total * 100);
-            const isFree = totalCents >= thresholdCents;
-            const fixedCents = isFree ? 0 : fixedCentsEnv;
-            const displayName = String(isFree
-              ? (process.env.SHIPPING_DISPLAY_NAME_FREE || 'Entrega grátis a partir de R$ 300')
-              : (process.env.SHIPPING_DISPLAY_NAME_PAID || 'Entrega padrão'));
-            return [{
-              shipping_rate_data: {
-                display_name: displayName,
-                type: 'fixed_amount',
-                fixed_amount: { amount: fixedCents, currency: currency.toLowerCase() },
-                delivery_estimate: {
-                  minimum: { unit: 'business_day', value: 3 },
-                  maximum: { unit: 'business_day', value: 10 }
-                }
-              }
-            }];
-          })(),
+          // Removido: nenhuma coleta de endereço de envio e nenhum frete exibido
           success_url: successUrl,
           cancel_url: cancelUrl,
           line_items: [
@@ -384,34 +330,7 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
         payment_method_types: paymentMethods as any,
         locale: "pt-BR",
         billing_address_collection: 'required',
-        shipping_address_collection: { allowed_countries: allowedCountriesPost },
-        shipping_options: (() => {
-          const rateId = process.env.SHIPPING_RATE_ID;
-          if (rateId && rateId.trim().length > 0) {
-            return [{ shipping_rate: rateId }];
-          }
-          const thresholdCentsRaw = parseInt(String(process.env.FREE_SHIPPING_THRESHOLD_CENTS ?? '30000'), 10);
-          const thresholdCents = Number.isFinite(thresholdCentsRaw) && thresholdCentsRaw >= 0 ? thresholdCentsRaw : 30000;
-          const fixedCentsEnvRaw = parseInt(String(process.env.SHIPPING_FIXED_AMOUNT_CENTS ?? '2990'), 10);
-          const fixedCentsEnv = Number.isFinite(fixedCentsEnvRaw) && fixedCentsEnvRaw >= 0 ? fixedCentsEnvRaw : 0;
-          const totalCents = Math.round(total * 100);
-          const isFree = totalCents >= thresholdCents;
-          const fixedCents = isFree ? 0 : fixedCentsEnv;
-          const displayName = String(isFree
-            ? (process.env.SHIPPING_DISPLAY_NAME_FREE || 'Entrega grátis a partir de R$ 300')
-            : (process.env.SHIPPING_DISPLAY_NAME_PAID || 'Entrega padrão'));
-          return [{
-            shipping_rate_data: {
-              display_name: displayName,
-              type: 'fixed_amount',
-              fixed_amount: { amount: fixedCents, currency: currency.toLowerCase() },
-              delivery_estimate: {
-                minimum: { unit: 'business_day', value: 3 },
-                maximum: { unit: 'business_day', value: 10 }
-              }
-            }
-          }];
-        })(),
+        // Removido: nenhuma coleta de endereço de envio e nenhum frete exibido
         success_url: successUrl,
         cancel_url: cancelUrl,
         payment_method_options: paymentMethodOptions,
@@ -514,34 +433,7 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
           payment_method_types: ["card"],
           locale: "pt-BR",
           billing_address_collection: 'required',
-          shipping_address_collection: { allowed_countries: allowedCountriesPostFallback },
-          shipping_options: (() => {
-            const rateId = process.env.SHIPPING_RATE_ID;
-            if (rateId && rateId.trim().length > 0) {
-              return [{ shipping_rate: rateId }];
-            }
-            const thresholdCentsRaw = parseInt(String(process.env.FREE_SHIPPING_THRESHOLD_CENTS ?? '30000'), 10);
-            const thresholdCents = Number.isFinite(thresholdCentsRaw) && thresholdCentsRaw >= 0 ? thresholdCentsRaw : 30000;
-            const fixedCentsEnvRaw = parseInt(String(process.env.SHIPPING_FIXED_AMOUNT_CENTS ?? '2990'), 10);
-            const fixedCentsEnv = Number.isFinite(fixedCentsEnvRaw) && fixedCentsEnvRaw >= 0 ? fixedCentsEnvRaw : 0;
-            const totalCents = Math.round(total * 100);
-            const isFree = totalCents >= thresholdCents;
-            const fixedCents = isFree ? 0 : fixedCentsEnv;
-            const displayName = String(isFree
-              ? (process.env.SHIPPING_DISPLAY_NAME_FREE || 'Entrega grátis a partir de R$ 300')
-              : (process.env.SHIPPING_DISPLAY_NAME_PAID || 'Entrega padrão'));
-            return [{
-              shipping_rate_data: {
-                display_name: displayName,
-                type: 'fixed_amount',
-                fixed_amount: { amount: fixedCents, currency: currency.toLowerCase() },
-                delivery_estimate: {
-                  minimum: { unit: 'business_day', value: 3 },
-                  maximum: { unit: 'business_day', value: 10 }
-                }
-              }
-            }];
-          })(),
+          // Removido: nenhuma coleta de endereço de envio e nenhum frete exibido
           success_url: successUrl,
           cancel_url: cancelUrl,
           metadata: fallbackMetadata,
