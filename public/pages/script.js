@@ -1,4 +1,4 @@
-/* eslint-disable no-undef */
+/* eslint-disable no-undef, no-unused-vars */
 document.addEventListener("DOMContentLoaded", () => {
     // Base da API: usa o mesmo host em produção; localhost em dev
     const API_URL = (/^https?:/i.test(window.location.origin)) ? window.location.origin : "http://localhost:8000";
@@ -7,6 +7,34 @@ document.addEventListener("DOMContentLoaded", () => {
 	const btnCart = document.getElementById("btnCart");
 	const searchInput = document.getElementById("search-input");
 	const searchButton = document.getElementById("search-button");
+
+	// Modal de imagem (reutilizável)
+	const modalOverlay = document.getElementById("img-modal");
+	const modalImg = modalOverlay ? modalOverlay.querySelector(".modal-img") : null;
+	const modalClose = modalOverlay ? modalOverlay.querySelector(".modal-close") : null;
+
+	/* eslint-disable-next-line no-unused-vars */
+	function abrirModalImagem(src, alt) {
+		if (!modalOverlay || !modalImg) return;
+		modalImg.src = src;
+		modalImg.alt = alt || "Imagem do vinho";
+		modalOverlay.classList.add("active");
+		document.body.style.overflow = "hidden";
+	}
+
+	function fecharModalImagem() {
+		if (!modalOverlay || !modalImg) return;
+		modalOverlay.classList.remove("active");
+		modalImg.src = "";
+		modalImg.alt = "";
+		document.body.style.overflow = "";
+	}
+
+	if (modalOverlay) {
+		modalOverlay.addEventListener("click", (e) => { if (e.target === modalOverlay) fecharModalImagem(); });
+		document.addEventListener("keydown", (e) => { if (e.key === "Escape") fecharModalImagem(); });
+		if (modalClose) modalClose.addEventListener("click", fecharModalImagem);
+	}
 
 	// Submenu dinâmico: apenas nomes de vinhos cadastrados
 	const submenuVinhos = document.getElementById("submenu-vinhos");
@@ -209,6 +237,13 @@ document.addEventListener("DOMContentLoaded", () => {
 					const nome = encodeURIComponent(produto.nome);
 					window.location.href = `produto.html?id=${produto.id}&nome=${nome}`;
 				});
+
+				// 🖼️ Clique na imagem abre modal
+				const imgEl = card.querySelector(".card-img-wrapper img");
+				if (imgEl) {
+					imgEl.style.cursor = "zoom-in";
+					imgEl.addEventListener("click", () => abrirModalImagem(produto.imagem, produto.nome));
+				}
 
 				lista.appendChild(card);
 			});

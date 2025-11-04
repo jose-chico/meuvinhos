@@ -134,4 +134,34 @@ document.addEventListener("DOMContentLoaded", async () => {
     salvarCarrinho();
     mostrarToast(`${produto.nome} adicionado ao carrinho!`);
   });
+
+  // 🖼️ Modal de imagem no detalhe
+  const modalOverlay = document.getElementById("img-modal");
+  const modalImg = modalOverlay ? modalOverlay.querySelector(".modal-img") : null;
+  const modalClose = modalOverlay ? modalOverlay.querySelector(".modal-close") : null;
+  function abrirModalImagem(src, alt) {
+    if (!modalOverlay || !modalImg) return;
+    modalImg.src = src;
+    modalImg.alt = alt || "Imagem do vinho";
+    modalOverlay.classList.add("active");
+    document.body.style.overflow = "hidden";
+  }
+  function fecharModalImagem() {
+    if (!modalOverlay || !modalImg) return;
+    modalOverlay.classList.remove("active");
+    modalImg.src = "";
+    modalImg.alt = "";
+    document.body.style.overflow = "";
+  }
+  if (modalOverlay) {
+    modalOverlay.addEventListener("click", (e) => { if (e.target === modalOverlay) fecharModalImagem(); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") fecharModalImagem(); });
+    if (modalClose) modalClose.addEventListener("click", fecharModalImagem);
+  }
+
+  const imgDetalhe = document.querySelector(".produto-detalhe-imagem img");
+  if (imgDetalhe) {
+    imgDetalhe.style.cursor = "zoom-in";
+    imgDetalhe.addEventListener("click", () => abrirModalImagem(produto.imagem, produto.nome));
+  }
 });

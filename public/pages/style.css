@@ -636,3 +636,50 @@ body {
   cursor: pointer;
 }
 
+/* ============================= */
+/* MODAL DE IMAGEM               */
+/* ============================= */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 5000;
+  padding: 20px;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  position: relative;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-card);
+  border-radius: 12px;
+  padding: 12px;
+  max-width: 90vw;
+  max-height: 85vh;
+}
+.modal-img {
+  display: block;
+  max-width: 86vw;
+  max-height: 78vh;
+  object-fit: contain;
+  background: var(--bg-surface-alt);
+  border-radius: 10px;
+}
+.modal-close {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  border: none;
+  background: var(--accent-contrast);
+  color: #000;
+  font-weight: 700;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+}
+.modal-close:hover { filter: brightness(1.08); }
+
