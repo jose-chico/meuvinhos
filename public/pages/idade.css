@@ -11,11 +11,11 @@
 .age-gate-modal {
   width: 92%;
   max-width: 420px;
-  background: var(--bg-surface, #fff);
-  color: var(--text, #111);
-  border: 1px solid var(--border-color, #e5e7eb);
+  background: var(--bg-surface);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
   border-radius: 14px;
-  box-shadow: var(--shadow-2, 0 8px 30px rgba(0,0,0,.15));
+  box-shadow: var(--shadow-card);
   padding: 24px;
   text-align: center;
 }
@@ -38,19 +38,19 @@
   cursor: pointer;
   padding: 10px 16px;
   border-radius: 10px;
-  border: 1px solid var(--border-color, #e5e7eb);
-  background: var(--bg, #f7f7f7);
-  color: var(--text, #111);
+  border: 1px solid var(--border-color);
+  background: var(--bg-surface-alt);
+  color: var(--text-main);
 }
 .age-btn.age-yes {
-  background: var(--accent, #2563eb);
-  color: var(--accent-contrast, #fff);
-  border-color: var(--accent, #2563eb);
+  background: var(--accent-main);
+  color: #fff;
+  border-color: var(--accent-main);
 }
 .age-disclaimer {
   margin-top: 12px;
   font-size: 13px;
-  color: var(--muted, #6b7280);
+  color: var(--text-muted);
 }
 .age-msg {
   margin-top: 8px;

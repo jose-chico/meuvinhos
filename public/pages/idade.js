@@ -1,15 +1,27 @@
 /* eslint-disable no-undef */
 // Verificação de idade 18+ com overlay bloqueando navegação até confirmar
-// Mostra apenas uma vez por navegador (usa localStorage: age_verified=true)
+// Persistência via cookie com expiração de 24h (age_verified=true)
 
 (function () {
   const KEY = "age_verified";
-  try {
-    const verified = localStorage.getItem(KEY) === "true";
-    if (verified) return; // já verificado, segue normalmente
-  } catch (e) {
-    console.warn("AgeGate: localStorage indisponível (get)", e);
+
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(";").shift();
+    return null;
   }
+
+  function setCookie(name, val, maxAgeSeconds) {
+    try {
+      document.cookie = `${name}=${val}; Max-Age=${maxAgeSeconds}; Path=/`;
+    } catch (e) {
+      console.warn("AgeGate: não foi possível gravar cookie", e);
+    }
+  }
+
+  const verified = getCookie(KEY) === "true";
+  if (verified) return; // já verificado, segue normalmente
 
   function createOverlay() {
     const overlay = document.createElement("div");
@@ -39,9 +51,8 @@
     const msg = overlay.querySelector(".age-msg");
 
     function approve() {
-      try { localStorage.setItem(KEY, "true"); } catch (e) {
-        console.warn("AgeGate: localStorage indisponível (set)", e);
-      }
+      // 24 horas: 24 * 60 * 60 = 86400 segundos
+      setCookie(KEY, "true", 86400);
       document.body.style.overflow = "";
       overlay.remove();
     }
