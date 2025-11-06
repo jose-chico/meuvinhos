@@ -114,125 +114,22 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            // Agrupar nomes por tipo de vinho
-            const gruposPorTipo = new Map();
-            for (const p of produtos) {
-                const tipoBruto = (p.tipo || "Outros").trim();
-                // Normaliza capitalização: "tinto" -> "Tinto"
-                const tipo = tipoBruto.charAt(0).toUpperCase() + tipoBruto.slice(1).toLowerCase();
-                if (!gruposPorTipo.has(tipo)) gruposPorTipo.set(tipo, new Set());
-                gruposPorTipo.get(tipo).add(p.nome);
-            }
+            // Lista simples de nomes de todos os vinhos (duas colunas)
+            const nomesUnicos = Array.from(new Set(produtos.map((p) => p.nome).filter(Boolean)))
+              .sort((a, b) => a.localeCompare(b));
 
-            // Ordem sugerida para tipos comuns; demais por ordem alfabética
-            const ordemPreferida = ["Tinto", "Branco", "Rosé", "Espumante", "Fortificado", "Sobremesa", "Outros"]; 
-            const tiposOrdenados = Array.from(gruposPorTipo.keys()).sort((a, b) => {
-                const ia = ordemPreferida.indexOf(a);
-                const ib = ordemPreferida.indexOf(b);
-                if (ia !== -1 && ib !== -1) return ia - ib;
-                if (ia !== -1) return -1;
-                if (ib !== -1) return 1;
-                return a.localeCompare(b);
-            });
+            const meio = Math.ceil(nomesUnicos.length / 2);
+            const colEsq = nomesUnicos.slice(0, meio)
+              .map((nome) => `<a href="produto.html?nome=${encodeURIComponent(nome)}">${nome}</a>`)
+              .join("");
+            const colDir = nomesUnicos.slice(meio)
+              .map((nome) => `<a href="produto.html?nome=${encodeURIComponent(nome)}">${nome}</a>`)
+              .join("");
 
-            const colunasHtml = tiposOrdenados.map((tipo) => {
-                const nomes = Array.from(gruposPorTipo.get(tipo)).sort((a, b) => a.localeCompare(b));
-                const links = nomes.map((nome) => {
-                    const href = `index.html?tipo=${encodeURIComponent(tipo)}`;
-                    return `<a href="${href}">${nome}</a>`;
-                }).join("");
-                const verTipo = `<a class="submenu-title" href="index.html?tipo=${encodeURIComponent(tipo)}" title="Ver todos ${tipo}">${tipo}</a>`;
-                const verTodos = `<a href="index.html?tipo=${encodeURIComponent(tipo)}" style="color:#aaa">Ver todos ${tipo}</a>`;
-                return `<div class="submenu-column">${verTipo}${links}${verTodos}</div>`;
-            }).join("");
-
-            const searchBoxHtml = `
-              <div class="submenu-search">
-                <input id="submenu-search-input" type="text" placeholder="Buscar vinhos pelo menu..." />
-                <button id="submenu-search-button" title="Buscar"><i class="fa-solid fa-magnifying-glass"></i></button>
-              </div>
+            submenuVinhos.innerHTML = `
+              <div class="submenu-column">${colEsq}</div>
+              <div class="submenu-column">${colDir}</div>
             `;
-
-            submenuVinhos.innerHTML = (searchBoxHtml + colunasHtml) || "<span style=\"color:#aaa\">Nenhum vinho cadastrado</span>";
-
-            const submenuInput = submenuVinhos.querySelector("#submenu-search-input");
-            const submenuButton = submenuVinhos.querySelector("#submenu-search-button");
-            const enviarBuscaSubmenu = () => {
-              const termo = (submenuInput?.value || "").trim();
-              if (!termo) return;
-              window.location.href = `index.html?busca=${encodeURIComponent(termo)}`;
-            };
-            if (submenuButton && submenuInput) {
-              submenuButton.addEventListener("click", enviarBuscaSubmenu);
-              submenuInput.addEventListener("keydown", (e) => { if (e.key === "Enter") enviarBuscaSubmenu(); });
-            }
-
-            // Filtrar visualmente por tipo dentro do submenu e navegar para o catálogo filtrado
-            const tipoLinks = submenuVinhos.querySelectorAll(".submenu-title");
-            tipoLinks.forEach((link) => {
-              link.addEventListener("click", (e) => {
-                e.preventDefault();
-                const tipoSelecionado = link.textContent?.trim() || "";
-                const nomesDoTipo = Array.from(gruposPorTipo.get(tipoSelecionado) || []);
-
-                const linksTipoHtml = nomesDoTipo
-                  .sort((a, b) => a.localeCompare(b))
-                  .map((nome) => {
-                    const href = `index.html?tipo=${encodeURIComponent(tipoSelecionado)}`;
-                    return `<a href="${href}">${nome}</a>`;
-                  }).join("");
-
-                const verTodosTipo = `<a href="index.html?tipo=${encodeURIComponent(tipoSelecionado)}" style="color:#aaa">Ver todos ${tipoSelecionado}</a>`;
-                const voltar = `<a href="#" class="submenu-title" style="color:#aaa" id="submenu-voltar-tipos">← Voltar aos tipos</a>`; /* eslint-disable-line quotes */
-
-                submenuVinhos.innerHTML = `
-                  ${searchBoxHtml}
-                  <div class="submenu-column">
-                    <div class="submenu-title">${tipoSelecionado}</div>
-                    ${linksTipoHtml}
-                    ${verTodosTipo}
-                  </div>
-                  <div class="submenu-column">
-                    ${voltar}
-                  </div>
-                `;
-
-                // Reanexar handlers de busca após re-render
-                const novoInput = submenuVinhos.querySelector("#submenu-search-input");
-                const novoBotao = submenuVinhos.querySelector("#submenu-search-button");
-                if (novoInput && novoBotao) {
-                  novoBotao.addEventListener("click", enviarBuscaSubmenu);
-                  novoInput.addEventListener("keydown", (evt) => { if (evt.key === "Enter") enviarBuscaSubmenu(); });
-                }
-
-                // Handler para voltar a ver todos os tipos
-                const voltarTipos = submenuVinhos.querySelector("#submenu-voltar-tipos");
-                if (voltarTipos) {
-                  voltarTipos.addEventListener("click", (evt) => {
-                    evt.preventDefault();
-                    submenuVinhos.innerHTML = searchBoxHtml + colunasHtml;
-                    // Reanexar novamente handlers após restaurar conteúdo
-                    const restInput = submenuVinhos.querySelector("#submenu-search-input");
-                    const restButton = submenuVinhos.querySelector("#submenu-search-button");
-                    if (restButton && restInput) {
-                      restButton.addEventListener("click", enviarBuscaSubmenu);
-                      restInput.addEventListener("keydown", (ev) => { if (ev.key === "Enter") enviarBuscaSubmenu(); });
-                    }
-                    // Reanexar handlers de tipo
-                    const restTipoLinks = submenuVinhos.querySelectorAll(".submenu-title");
-                    restTipoLinks.forEach((lnk) => {
-                      lnk.addEventListener("click", (evt2) => {
-                        evt2.preventDefault();
-                        lnk.click(); // delega ao comportamento padrão recriado acima
-                      });
-                    });
-                  });
-                }
-
-                // Navegar para catálogo filtrado por tipo (em outra aba via Ctrl+Click; padrão abre direto)
-                window.location.href = `index.html?tipo=${encodeURIComponent(tipoSelecionado)}`;
-              });
-            });
         } catch (err) {
             console.error("Erro ao carregar submenu de vinhos", err);
             submenuVinhos.innerHTML = "<span style=\"color:red\">Erro ao carregar vinhos</span>";
