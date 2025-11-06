@@ -126,9 +126,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Ordena tipos e nomes
             const tiposOrdenados = Array.from(mapaTipos.keys()).sort((a, b) => a.localeCompare(b));
+            // Extrai palavras-chave dos nomes por tipo
+            const STOP_WORDS = new Set(["de","do","da","dos","das","e","em","com","para","por","o","a","os","as"]);
+            const sanitize = (s) => s
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "") // remove acentos
+                .replace(/[^a-zA-Z0-9\s-]/g, "") // remove pontuação
+                .trim();
+
             const grupos = tiposOrdenados.map((tipo) => {
-                const nomes = Array.from(mapaTipos.get(tipo)).sort((a, b) => a.localeCompare(b));
-                const itens = nomes.map((nome) => `<a href="index.html?busca=${encodeURIComponent(nome)}">${nome}</a>`).join("");
+                const nomes = Array.from(mapaTipos.get(tipo));
+                const palavrasSet = new Set();
+                nomes.forEach((nome) => {
+                    const clean = sanitize(String(nome));
+                    clean.split(/\s+/).forEach((w) => {
+                        const word = w.toLowerCase();
+                        if (!word || word.length < 3) return;
+                        if (STOP_WORDS.has(word)) return;
+                        palavrasSet.add(word);
+                    });
+                });
+
+                const palavras = Array.from(palavrasSet).sort((a, b) => a.localeCompare(b));
+                const itens = palavras.map((kw) => `<a href="index.html?busca=${encodeURIComponent(kw)}">${kw}</a>`).join("");
                 return `<details class="submenu-type"><summary class="submenu-title">${tipo}</summary><div class="submenu-type-list">${itens}</div></details>`;
             });
 
