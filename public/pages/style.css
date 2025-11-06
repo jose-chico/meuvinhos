@@ -460,6 +460,68 @@ body {
 .checkout-msg { font-weight: 600; }
 
 /* ============================= */
+/* CHECKOUT CEP                  */
+/* ============================= */
+.cep-page {
+  padding-top: 120px;
+  padding-bottom: 60px;
+  display: flex;
+  justify-content: center;
+}
+.cep-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: var(--shadow-card);
+  padding: 24px;
+  max-width: 560px;
+  width: 100%;
+  display: grid;
+  gap: 16px;
+}
+.cep-form .row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.cep-form .col {
+  flex: 1;
+  min-width: 220px;
+}
+.cep-form label {
+  display: block;
+  font-size: .85rem;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+.cep-form input,
+.cep-form select,
+.cep-form button {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  font-size: .95rem;
+  color: var(--text-main);
+  background: var(--bg-surface-alt);
+}
+.cep-form input::placeholder { color: var(--text-muted); }
+.cep-form input[readonly] { opacity: .85; }
+.cep-form .hint { color: var(--text-muted); font-size: .8rem; margin-top: 4px; }
+.cep-form .error { color: #b91c1c; margin-top: 8px; }
+.cep-form .success { color: var(--success); margin-top: 8px; }
+.submit-btn {
+  background: var(--accent-main);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.submit-btn:disabled { opacity: .6; cursor: not-allowed; }
+
+/* ============================= */
 /* CONTATO / FOOTER              */
 /* ============================= */
 .contato {

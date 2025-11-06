@@ -4,86 +4,73 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Checkout com CEP (pré-endereço)</title>
-    <style>
-      body { font-family: system-ui, Arial, sans-serif; margin: 24px; }
-      .card { max-width: 560px; margin: 0 auto; border: 1px solid #ddd; border-radius: 8px; padding: 16px; }
-      .row { display: flex; gap: 12px; }
-      .col { flex: 1; }
-      label { display: block; font-size: 13px; margin-bottom: 4px; color: #333; }
-      input, select, button { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
-      input[readonly] { background: #f7f7f7; }
-      button { background: #2e6bff; color: white; border: none; cursor: pointer; }
-      button:disabled { background: #9bb8ff; cursor: not-allowed; }
-      .hint { color: #666; font-size: 12px; margin-top: 4px; }
-      .error { color: #b00020; margin-top: 8px; }
-      .success { color: #0a7a1c; margin-top: 8px; }
-    </style>
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <div class="card">
-      <h2>Informe seu CEP para realizar a entrega</h2>
+    <main class="cep-page">
+      <div class="cep-card">
+        <h2 style="color: var(--accent-contrast);">Informe seu CEP para realizar a entrega</h2>
 
-      <form id="form">
-        <div class="row">
-          <div class="col">
-            <label for="name">Nome completo</label>
-            <input id="name" name="name" type="text" placeholder="Seu nome" required />
+        <form id="form" class="cep-form">
+          <div class="row">
+            <div class="col">
+              <label for="name">Nome completo</label>
+              <input id="name" name="name" type="text" placeholder="Seu nome" required />
+            </div>
           </div>
-        </div>
-        <div class="row">
-          <div class="col">
-            <label for="email">E-mail</label>
-            <input id="email" name="email" type="email" placeholder="voce@email.com" required />
+          <div class="row">
+            <div class="col">
+              <label for="email">E-mail</label>
+              <input id="email" name="email" type="email" placeholder="voce@email.com" required />
+            </div>
           </div>
-        </div>
 
-        <div class="row">
-          <div class="col">
-            <label for="cep">CEP</label>
-            <input id="cep" name="cep" type="text" placeholder="00000-000" inputmode="numeric" maxlength="9" />
-            <div class="hint">Digite 8 dígitos. Ex: 77022-386</div>
+          <div class="row">
+            <div class="col">
+              <label for="cep">CEP</label>
+              <input id="cep" name="cep" type="text" placeholder="00000-000" inputmode="numeric" maxlength="9" />
+              <div class="hint">Digite 8 dígitos. Ex: 77022-386</div>
+            </div>
+            <div class="col">
+              <label for="numero">Número</label>
+              <input id="numero" name="numero" type="text" placeholder="123" />
+            </div>
+            <div class="col">
+              <label for="complemento">Complemento</label>
+              <input id="complemento" name="complemento" type="text" placeholder="Apto, bloco, referência" />
+            </div>
           </div>
-          <div class="col">
-            <label for="numero">Número</label>
-            <input id="numero" name="numero" type="text" placeholder="123" />
-          </div>
-          <div class="col">
-            <label for="complemento">Complemento</label>
-            <input id="complemento" name="complemento" type="text" placeholder="Apto, bloco, referência" />
-          </div>
-        </div>
 
-        <div class="row">
-          <div class="col">
-            <label for="logradouro">Endereço, linha 1</label>
-            <input id="logradouro" type="text" placeholder="Rua/Av" readonly />
+          <div class="row">
+            <div class="col">
+              <label for="logradouro">Endereço, linha 1</label>
+              <input id="logradouro" type="text" placeholder="Rua/Av" readonly />
+            </div>
           </div>
-        </div>
-        <div class="row">
-          <div class="col">
-            <label for="bairro">Bairro</label>
-            <input id="bairro" type="text" placeholder="Bairro" readonly />
+          <div class="row">
+            <div class="col">
+              <label for="bairro">Bairro</label>
+              <input id="bairro" type="text" placeholder="Bairro" readonly />
+            </div>
+            <div class="col">
+              <label for="cidade">Cidade</label>
+              <input id="cidade" type="text" placeholder="Cidade" readonly />
+            </div>
+            <div class="col">
+              <label for="estado">Estado</label>
+              <input id="estado" type="text" placeholder="UF" readonly />
+            </div>
           </div>
-          <div class="col">
-            <label for="cidade">Cidade</label>
-            <input id="cidade" type="text" placeholder="Cidade" readonly />
-          </div>
-          <div class="col">
-            <label for="estado">Estado</label>
-            <input id="estado" type="text" placeholder="UF" readonly />
-          </div>
-        </div>
 
-        
+          <div id="msg" class="error" style="display:none"></div>
+          <div id="ok" class="success" style="display:none"></div>
 
-        <div id="msg" class="error" style="display:none"></div>
-        <div id="ok" class="success" style="display:none"></div>
-
-        <div class="row" style="margin-top: 16px;">
-          <button id="btn" type="submit">Ir para Stripe Checkout</button>
-        </div>
-      </form>
-    </div>
+          <div class="row" style="margin-top: 8px;">
+            <button id="btn" class="submit-btn" type="submit">Ir para Stripe Checkout</button>
+          </div>
+        </form>
+      </div>
+    </main>
 
     <script>
       const $ = (sel) => document.querySelector(sel);
