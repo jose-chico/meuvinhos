@@ -614,6 +614,12 @@ body {
 .submenu a { color: var(--text-main); text-decoration: none; font-size: .9rem; }
 .submenu a:hover { color: var(--accent-contrast); }
 
+/* Accordion por tipo no submenu de Vinhos */
+details.submenu-type { margin-bottom: 8px; }
+details.submenu-type:last-child { margin-bottom: 0; }
+details.submenu-type > summary.submenu-title { cursor: pointer; list-style: none; }
+.submenu-type-list { display: grid; gap: 6px; margin-top: 4px; }
+
 /* Estilo da barra de rolagem (Chromium/WebKit) */
 .submenu::-webkit-scrollbar { width: 10px; }
 .submenu::-webkit-scrollbar-track { background: var(--bg-surface-alt); border-radius: 10px; }

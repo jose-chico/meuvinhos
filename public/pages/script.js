@@ -97,7 +97,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		window.location.href = "carrinho.html";
 	});
 
-    // 📑 Carrega submenu de vinhos dinamicamente, agrupando por tipo
+    // 📑 Carrega submenu de vinhos dinamicamente, agrupando por tipo (accordion)
     async function carregarSubmenu() {
         if (!submenuVinhos) return;
         try {
@@ -110,21 +110,32 @@ document.addEventListener("DOMContentLoaded", () => {
             const produtos = Array.isArray(data.produtos) ? data.produtos : [];
 
             if (produtos.length === 0) {
-            submenuVinhos.innerHTML = "<span style=\"color:#aaa\">Nenhum vinho cadastrado</span>";
+                submenuVinhos.innerHTML = "<span style=\"color:#aaa\">Nenhum vinho cadastrado</span>";
                 return;
             }
 
-            // Lista simples de nomes de todos os vinhos (duas colunas)
-            const nomesUnicos = Array.from(new Set(produtos.map((p) => p.nome).filter(Boolean)))
-              .sort((a, b) => a.localeCompare(b));
+            // Agrupa por tipo -> nomes únicos por tipo
+            const mapaTipos = new Map(); // tipo => Set(nomes)
+            for (const p of produtos) {
+                const tipo = ((p.tipo || "—").trim());
+                const nome = (p.nome || "").trim();
+                if (!nome) continue;
+                if (!mapaTipos.has(tipo)) mapaTipos.set(tipo, new Set());
+                mapaTipos.get(tipo).add(nome);
+            }
 
-            const meio = Math.ceil(nomesUnicos.length / 2);
-            const colEsq = nomesUnicos.slice(0, meio)
-              .map((nome) => `<a href="index.html?busca=${encodeURIComponent(nome)}">${nome}</a>`)
-              .join("");
-            const colDir = nomesUnicos.slice(meio)
-              .map((nome) => `<a href="index.html?busca=${encodeURIComponent(nome)}">${nome}</a>`)
-              .join("");
+            // Ordena tipos e nomes
+            const tiposOrdenados = Array.from(mapaTipos.keys()).sort((a, b) => a.localeCompare(b));
+            const grupos = tiposOrdenados.map((tipo) => {
+                const nomes = Array.from(mapaTipos.get(tipo)).sort((a, b) => a.localeCompare(b));
+                const itens = nomes.map((nome) => `<a href="index.html?busca=${encodeURIComponent(nome)}">${nome}</a>`).join("");
+                return `<details class="submenu-type"><summary class="submenu-title">${tipo}</summary><div class="submenu-type-list">${itens}</div></details>`;
+            });
+
+            // Divide grupos em duas colunas
+            const meio = Math.ceil(grupos.length / 2);
+            const colEsq = grupos.slice(0, meio).join("");
+            const colDir = grupos.slice(meio).join("");
 
             submenuVinhos.innerHTML = `
               <div class="submenu-column">${colEsq}</div>
