@@ -120,10 +120,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const meio = Math.ceil(nomesUnicos.length / 2);
             const colEsq = nomesUnicos.slice(0, meio)
-              .map((nome) => `<a href="produto.html?nome=${encodeURIComponent(nome)}">${nome}</a>`)
+              .map((nome) => `<a href="index.html?busca=${encodeURIComponent(nome)}">${nome}</a>`)
               .join("");
             const colDir = nomesUnicos.slice(meio)
-              .map((nome) => `<a href="produto.html?nome=${encodeURIComponent(nome)}">${nome}</a>`)
+              .map((nome) => `<a href="index.html?busca=${encodeURIComponent(nome)}">${nome}</a>`)
               .join("");
 
             submenuVinhos.innerHTML = `
