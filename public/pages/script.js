@@ -312,7 +312,6 @@ document.addEventListener("DOMContentLoaded", () => {
 			const end = Math.min(totalPaginas, start + janela - 1);
 			const realStart = Math.max(1, end - janela + 1);
 
-			const info = `<span class="page-info">Exibindo ${Math.min(inicio + 1, total)}–${Math.min(fim, total)} de ${total}</span>`;
 			let html = `
 				<button class="page-btn" ${paginaAtual === 1 ? "disabled" : ""} data-act="prev">Anterior</button>
 				<div class="page-list">
@@ -326,7 +325,6 @@ document.addEventListener("DOMContentLoaded", () => {
 			html += `
 				</div>
 				<button class="page-btn" ${paginaAtual === totalPaginas ? "disabled" : ""} data-act="next">Próxima</button>
-				${info}
 			`;
 			paginacao.innerHTML = html;
 
