@@ -110,7 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const produtos = Array.isArray(data.produtos) ? data.produtos : [];
 
             if (produtos.length === 0) {
-                submenuVinhos.innerHTML = "<span style='color:#aaa'>Nenhum vinho cadastrado</span>";
+            submenuVinhos.innerHTML = "<span style=\"color:#aaa\">Nenhum vinho cadastrado</span>";
                 return;
             }
 
@@ -138,7 +138,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const colunasHtml = tiposOrdenados.map((tipo) => {
                 const nomes = Array.from(gruposPorTipo.get(tipo)).sort((a, b) => a.localeCompare(b));
                 const links = nomes.map((nome) => {
-                    const href = `produto.html?nome=${encodeURIComponent(nome)}`;
+                    const href = `index.html?tipo=${encodeURIComponent(tipo)}`;
                     return `<a href="${href}">${nome}</a>`;
                 }).join("");
                 const verTipo = `<a class="submenu-title" href="index.html?tipo=${encodeURIComponent(tipo)}" title="Ver todos ${tipo}">${tipo}</a>`;
@@ -153,7 +153,7 @@ document.addEventListener("DOMContentLoaded", () => {
               </div>
             `;
 
-            submenuVinhos.innerHTML = (searchBoxHtml + colunasHtml) || "<span style='color:#aaa'>Nenhum vinho cadastrado</span>";
+            submenuVinhos.innerHTML = (searchBoxHtml + colunasHtml) || "<span style=\"color:#aaa\">Nenhum vinho cadastrado</span>";
 
             const submenuInput = submenuVinhos.querySelector("#submenu-search-input");
             const submenuButton = submenuVinhos.querySelector("#submenu-search-button");
@@ -166,15 +166,82 @@ document.addEventListener("DOMContentLoaded", () => {
               submenuButton.addEventListener("click", enviarBuscaSubmenu);
               submenuInput.addEventListener("keydown", (e) => { if (e.key === "Enter") enviarBuscaSubmenu(); });
             }
+
+            // Filtrar visualmente por tipo dentro do submenu e navegar para o catálogo filtrado
+            const tipoLinks = submenuVinhos.querySelectorAll(".submenu-title");
+            tipoLinks.forEach((link) => {
+              link.addEventListener("click", (e) => {
+                e.preventDefault();
+                const tipoSelecionado = link.textContent?.trim() || "";
+                const nomesDoTipo = Array.from(gruposPorTipo.get(tipoSelecionado) || []);
+
+                const linksTipoHtml = nomesDoTipo
+                  .sort((a, b) => a.localeCompare(b))
+                  .map((nome) => {
+                    const href = `index.html?tipo=${encodeURIComponent(tipoSelecionado)}`;
+                    return `<a href="${href}">${nome}</a>`;
+                  }).join("");
+
+                const verTodosTipo = `<a href="index.html?tipo=${encodeURIComponent(tipoSelecionado)}" style="color:#aaa">Ver todos ${tipoSelecionado}</a>`;
+                const voltar = `<a href="#" class="submenu-title" style="color:#aaa" id="submenu-voltar-tipos">← Voltar aos tipos</a>`; /* eslint-disable-line quotes */
+
+                submenuVinhos.innerHTML = `
+                  ${searchBoxHtml}
+                  <div class="submenu-column">
+                    <div class="submenu-title">${tipoSelecionado}</div>
+                    ${linksTipoHtml}
+                    ${verTodosTipo}
+                  </div>
+                  <div class="submenu-column">
+                    ${voltar}
+                  </div>
+                `;
+
+                // Reanexar handlers de busca após re-render
+                const novoInput = submenuVinhos.querySelector("#submenu-search-input");
+                const novoBotao = submenuVinhos.querySelector("#submenu-search-button");
+                if (novoInput && novoBotao) {
+                  novoBotao.addEventListener("click", enviarBuscaSubmenu);
+                  novoInput.addEventListener("keydown", (evt) => { if (evt.key === "Enter") enviarBuscaSubmenu(); });
+                }
+
+                // Handler para voltar a ver todos os tipos
+                const voltarTipos = submenuVinhos.querySelector("#submenu-voltar-tipos");
+                if (voltarTipos) {
+                  voltarTipos.addEventListener("click", (evt) => {
+                    evt.preventDefault();
+                    submenuVinhos.innerHTML = searchBoxHtml + colunasHtml;
+                    // Reanexar novamente handlers após restaurar conteúdo
+                    const restInput = submenuVinhos.querySelector("#submenu-search-input");
+                    const restButton = submenuVinhos.querySelector("#submenu-search-button");
+                    if (restButton && restInput) {
+                      restButton.addEventListener("click", enviarBuscaSubmenu);
+                      restInput.addEventListener("keydown", (ev) => { if (ev.key === "Enter") enviarBuscaSubmenu(); });
+                    }
+                    // Reanexar handlers de tipo
+                    const restTipoLinks = submenuVinhos.querySelectorAll(".submenu-title");
+                    restTipoLinks.forEach((lnk) => {
+                      lnk.addEventListener("click", (evt2) => {
+                        evt2.preventDefault();
+                        lnk.click(); // delega ao comportamento padrão recriado acima
+                      });
+                    });
+                  });
+                }
+
+                // Navegar para catálogo filtrado por tipo (em outra aba via Ctrl+Click; padrão abre direto)
+                window.location.href = `index.html?tipo=${encodeURIComponent(tipoSelecionado)}`;
+              });
+            });
         } catch (err) {
             console.error("Erro ao carregar submenu de vinhos", err);
-            submenuVinhos.innerHTML = "<span style='color:red'>Erro ao carregar vinhos</span>";
+            submenuVinhos.innerHTML = "<span style=\"color:red\">Erro ao carregar vinhos</span>";
         }
     }
 
 	// 📦 Carrega os produtos
 	async function carregarProdutos() {
-		lista.innerHTML = "<p style='text-align:center;color:#aaa;'>Carregando produtos...</p>";
+        lista.innerHTML = "<p style=\"text-align:center;color:#aaa;\">Carregando produtos...</p>";
 
 		try {
 			const token = localStorage.getItem("token");
@@ -184,10 +251,10 @@ document.addEventListener("DOMContentLoaded", () => {
 			const data = await response.json();
 			lista.innerHTML = "";
 
-			if (!data.produtos || data.produtos.length === 0) {
-				lista.innerHTML = "<p style='text-align:center;color:#aaa;'>Nenhum produto cadastrado ainda.</p>";
-				return;
-			}
+            if (!data.produtos || data.produtos.length === 0) {
+                lista.innerHTML = "<p style=\"text-align:center;color:#aaa;\">Nenhum produto cadastrado ainda.</p>";
+                return;
+            }
 
 			// 🔹 Filtros por querystring: tipo e busca
 			const params = new URLSearchParams(window.location.search);
@@ -204,10 +271,10 @@ document.addEventListener("DOMContentLoaded", () => {
 				produtos = produtos.filter((p) => (p.nome || "").toLowerCase().includes(termo));
 			}
 
-			if (!produtos || produtos.length === 0) {
-				lista.innerHTML = "<p style='text-align:center;color:#aaa;'>Nenhum produto encontrado para o filtro.</p>";
-				return;
-			}
+            if (!produtos || produtos.length === 0) {
+                lista.innerHTML = "<p style=\"text-align:center;color:#aaa;\">Nenhum produto encontrado para o filtro.</p>";
+                return;
+            }
 
 
 
@@ -224,7 +291,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 				card.innerHTML = `
           <div class="card-img-wrapper">
-            ${produto.desconto ? "<span class='promo-tag'>-20% OFF</span>" : ""}
+            ${produto.desconto ? "<span class=\"promo-tag\">-20% OFF</span>" : ""}
             <img src="${produto.imagem}" alt="${produto.nome}" />
           </div>
           <div class="card-body">
@@ -268,7 +335,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			});
 		} catch (err) {
 			console.error(err);
-			lista.innerHTML = "<p style='text-align:center;color:red;'>Erro ao carregar produtos.</p>";
+            lista.innerHTML = "<p style=\"text-align:center;color:red;\">Erro ao carregar produtos.</p>";
 		}
 	}
 
