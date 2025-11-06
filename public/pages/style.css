@@ -603,12 +603,26 @@ body {
   padding: 14px;
   gap: 20px;
   z-index: 2500;
+  max-height: 65vh; /* rolagem para listas grandes */
+  overflow-y: auto;
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: var(--accent-main) var(--bg-surface-alt);
 }
 .has-submenu:hover .submenu { display: grid; grid-template-columns: 1fr 1fr; }
 .submenu-column { display: grid; gap: 8px; min-width: 220px; }
 .submenu-title { color: var(--accent-contrast); font-weight: 700; margin-bottom: 6px; }
 .submenu a { color: var(--text-main); text-decoration: none; font-size: .9rem; }
 .submenu a:hover { color: var(--accent-contrast); }
+
+/* Estilo da barra de rolagem (Chromium/WebKit) */
+.submenu::-webkit-scrollbar { width: 10px; }
+.submenu::-webkit-scrollbar-track { background: var(--bg-surface-alt); border-radius: 10px; }
+.submenu::-webkit-scrollbar-thumb { background: var(--accent-main); border-radius: 10px; }
+.submenu:hover::-webkit-scrollbar-thumb { background: var(--accent-contrast); }
+
+@media (max-height: 700px) {
+  .has-submenu .submenu { max-height: 60vh; }
+}
 
 /* Busca dentro do submenu de Vinhos */
 .submenu-search {
