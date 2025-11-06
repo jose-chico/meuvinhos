@@ -146,7 +146,26 @@ document.addEventListener("DOMContentLoaded", () => {
                 return `<div class="submenu-column">${verTipo}${links}${verTodos}</div>`;
             }).join("");
 
-            submenuVinhos.innerHTML = colunasHtml || "<span style='color:#aaa'>Nenhum vinho cadastrado</span>";
+            const searchBoxHtml = `
+              <div class="submenu-search">
+                <input id="submenu-search-input" type="text" placeholder="Buscar vinhos pelo menu..." />
+                <button id="submenu-search-button" title="Buscar"><i class="fa-solid fa-magnifying-glass"></i></button>
+              </div>
+            `;
+
+            submenuVinhos.innerHTML = (searchBoxHtml + colunasHtml) || "<span style='color:#aaa'>Nenhum vinho cadastrado</span>";
+
+            const submenuInput = submenuVinhos.querySelector("#submenu-search-input");
+            const submenuButton = submenuVinhos.querySelector("#submenu-search-button");
+            const enviarBuscaSubmenu = () => {
+              const termo = (submenuInput?.value || "").trim();
+              if (!termo) return;
+              window.location.href = `index.html?busca=${encodeURIComponent(termo)}`;
+            };
+            if (submenuButton && submenuInput) {
+              submenuButton.addEventListener("click", enviarBuscaSubmenu);
+              submenuInput.addEventListener("keydown", (e) => { if (e.key === "Enter") enviarBuscaSubmenu(); });
+            }
         } catch (err) {
             console.error("Erro ao carregar submenu de vinhos", err);
             submenuVinhos.innerHTML = "<span style='color:red'>Erro ao carregar vinhos</span>";

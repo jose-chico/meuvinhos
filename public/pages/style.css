@@ -610,6 +610,33 @@ body {
 .submenu a { color: var(--text-main); text-decoration: none; font-size: .9rem; }
 .submenu a:hover { color: var(--accent-contrast); }
 
+/* Busca dentro do submenu de Vinhos */
+.submenu-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-surface-alt);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 6px 10px;
+  grid-column: 1 / -1; /* ocupa largura total do submenu */
+  margin-bottom: 10px;
+}
+.submenu-search input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-main);
+  min-width: 160px;
+  flex: 1;
+}
+.submenu-search button {
+  background: transparent;
+  border: none;
+  color: var(--accent-contrast);
+  cursor: pointer;
+}
+
 /* ============================= */
 /* BUSCA                         */
 /* ============================= */
