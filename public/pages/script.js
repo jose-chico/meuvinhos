@@ -183,8 +183,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
 			// Quando houver nome no querystring (links do menu), faz correspondência exata
 			if (nomeParam) {
-				const alvo = nomeParam.trim().toLowerCase();
-				produtos = produtos.filter((p) => (String(p.nome || "").trim().toLowerCase() === alvo));
+				const normalize = (s) => String(s || "")
+					.trim()
+					.toLowerCase()
+					.normalize("NFD")
+					.replace(/[\u0300-\u036f]/g, "");
+				const alvo = normalize(nomeParam);
+				produtos = produtos.filter((p) => normalize(p.nome) === alvo);
 			}
 			if (buscaParam) {
 				const termo = buscaParam.toLowerCase();
