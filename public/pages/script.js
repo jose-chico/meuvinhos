@@ -156,6 +156,14 @@ document.addEventListener("DOMContentLoaded", () => {
 	async function carregarProdutos() {
         lista.innerHTML = "<p style=\"text-align:center;color:#aaa;\">Carregando produtos...</p>";
 
+		// Helper fora de blocos: atualiza a URL e re-renderiza
+		const irParaPagina = (num) => {
+			const qs = new URLSearchParams(window.location.search);
+			qs.set("page", String(num));
+			history.replaceState(null, "", `${location.pathname}?${qs.toString()}`);
+			carregarProdutos();
+		};
+
 		try {
 			const token = localStorage.getItem("token");
 			const response = await fetch(`${API_URL}/produtos`, {
@@ -203,8 +211,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-			// 🔹 Renderiza os produtos
-			produtos.forEach((produto) => {
+			// 🔹 Paginação
+			const porPagina = 4;
+			const pageParam = parseInt((new URLSearchParams(window.location.search)).get("page") || "1", 10);
+			const total = produtos.length;
+			const totalPaginas = Math.max(1, Math.ceil(total / porPagina));
+			const paginaAtual = Math.min(Math.max(pageParam, 1), totalPaginas);
+			const inicio = (paginaAtual - 1) * porPagina;
+			const fim = inicio + porPagina;
+			const produtosPagina = produtos.slice(inicio, fim);
+
+			// 🔹 Renderiza os produtos da página atual
+			produtosPagina.forEach((produto) => {
 				const baseValor = parsePrecoBRL(produto.valor);
 				const precoFinal = produto.desconto ? baseValor * 0.8 : baseValor;
 
@@ -258,6 +276,68 @@ document.addEventListener("DOMContentLoaded", () => {
 
 				lista.appendChild(card);
 			});
+
+			// 🔹 Renderiza controles de paginação
+			let paginacao = document.getElementById("paginacao");
+			if (!paginacao) {
+				paginacao = document.createElement("div");
+				paginacao.id = "paginacao";
+				paginacao.className = "paginacao";
+				// coloca logo abaixo da lista de produtos
+				lista.parentElement.appendChild(paginacao);
+
+				// Injeta estilos de paginação uma única vez
+				if (!document.getElementById("pagination-styles")) {
+					const st = document.createElement("style");
+					st.id = "pagination-styles";
+					st.textContent = `
+					.paginacao{margin-top:24px;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}
+					.paginacao .page-list{display:flex;align-items:center;gap:8px}
+					.paginacao .page-btn{padding:8px 12px;border-radius:6px;border:1px solid var(--accent-contrast, #8b1e1e);background: var(--accent-contrast, #8b1e1e);color:#000;font-weight:600;cursor:pointer;transition:transform .15s ease,opacity .15s ease,background .2s ease}
+					.paginacao .page-btn:hover:not([disabled]){transform:translateY(-1px)}
+					.paginacao .page-btn:active:not([disabled]){transform:translateY(0)}
+					.paginacao .page-btn[disabled]{opacity:.6;cursor:not-allowed}
+					.paginacao .page-btn.active{background:transparent;color:var(--accent-contrast, #8b1e1e)}
+					.paginacao .page-ellipsis{opacity:.7}
+					.paginacao .page-info{opacity:.8}
+					`;
+					document.head.appendChild(st);
+				}
+			}
+
+
+			// gera lista de páginas com janela de 5
+			const janela = 5;
+			const start = Math.max(1, paginaAtual - Math.floor(janela / 2));
+			const end = Math.min(totalPaginas, start + janela - 1);
+			const realStart = Math.max(1, end - janela + 1);
+
+			const info = `<span class="page-info">Exibindo ${Math.min(inicio + 1, total)}–${Math.min(fim, total)} de ${total}</span>`;
+			let html = `
+				<button class="page-btn" ${paginaAtual === 1 ? "disabled" : ""} data-act="prev">Anterior</button>
+				<div class="page-list">
+			`;
+			for (let i = realStart; i <= end; i++) {
+				html += `<button class="page-btn ${i === paginaAtual ? "active" : ""}" data-page="${i}">${i}</button>`;
+			}
+			if (end < totalPaginas) {
+				html += `<span class="page-ellipsis">…</span><button class="page-btn" data-page="${totalPaginas}">${totalPaginas}</button>`;
+			}
+			html += `
+				</div>
+				<button class="page-btn" ${paginaAtual === totalPaginas ? "disabled" : ""} data-act="next">Próxima</button>
+				${info}
+			`;
+			paginacao.innerHTML = html;
+
+			// eventos
+			paginacao.querySelectorAll(".page-btn[data-page]").forEach((btn) => {
+				btn.addEventListener("click", () => irParaPagina(Number(btn.getAttribute("data-page"))));
+			});
+			const btnPrev = paginacao.querySelector(".page-btn[data-act='prev']");
+			const btnNext = paginacao.querySelector(".page-btn[data-act='next']");
+			if (btnPrev) btnPrev.addEventListener("click", () => irParaPagina(paginaAtual - 1));
+			if (btnNext) btnNext.addEventListener("click", () => irParaPagina(paginaAtual + 1));
 		} catch (err) {
 			console.error(err);
             lista.innerHTML = "<p style=\"text-align:center;color:red;\">Erro ao carregar produtos.</p>";
