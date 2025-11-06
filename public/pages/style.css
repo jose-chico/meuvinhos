@@ -637,7 +637,7 @@ body {
   /* Botão de carrinho compacto e sem corte */
   .btn-cart { padding: 6px 8px; }
   .btn-cart .cart-text { display: inline; }
-  .cart-count { display: none; }
+  .cart-count { display: inline-block; }
 
   /* Evitar rolagem lateral em aparelhos estreitos */
   html, body { overflow-x: hidden; }
