@@ -1,4 +1,4 @@
-# Casa de Vinho — Deploy
+# Casa de Vinho — App Único
 
 ## Pré-requisitos
 - Node `20.x`
@@ -28,15 +28,32 @@ npm run seed
 
 ## Início (dev)
 ```
+npm install
 npm run dev
 ```
 Acesse `http://localhost:8000/pages/index.html`.
 
+## Build e execução (produção/local)
+```
+npm run build
+npm run start
+```
+O build gera um único `dist/` (não há subprojetos como `meuvinhos`).
+
 ## Deploy rápido (Render/Railway)
 1. Crie serviço Node e indique `npm run start` como comando.
 2. Configure variáveis de ambiente (acima).
-3. Configure Postgres gerenciado e a `DATABASE_URL` no `.env` do provedor.
+3. Configure Postgres gerenciado e a `DATABASE_URL` no provedor.
 4. Após o primeiro build, execute migrações via job/CLI: `npm run migrate:deploy`.
+
+## Estrutura de pastas (simplificada)
+```
+src/        # código servidor (Express)
+public/     # páginas estáticas e assets
+dist/       # saída compilada (gerada pelo build)
+```
+
+> Observação: a antiga pasta `meuvinhos` foi removida. Todo o código vive neste repositório único.
 
 ## Notas Stripe
 - Em dev use chaves de teste (formato `sk_test_…`). Live somente em produção (`NODE_ENV=production`).
