@@ -126,29 +126,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Ordena tipos e nomes
             const tiposOrdenados = Array.from(mapaTipos.keys()).sort((a, b) => a.localeCompare(b));
-            // Extrai palavras-chave dos nomes por tipo
-            const STOP_WORDS = new Set(["de","do","da","dos","das","e","em","com","para","por","o","a","os","as"]);
-            const sanitize = (s) => s
-                .normalize("NFD")
-                .replace(/[\u0300-\u036f]/g, "") // remove acentos
-                .replace(/[^a-zA-Z0-9\s-]/g, "") // remove pontuação
-                .trim();
-
+            // No menu, usar nomes completos do vinho e filtrar por igualdade
             const grupos = tiposOrdenados.map((tipo) => {
-                const nomes = Array.from(mapaTipos.get(tipo));
-                const palavrasSet = new Set();
-                nomes.forEach((nome) => {
-                    const clean = sanitize(String(nome));
-                    clean.split(/\s+/).forEach((w) => {
-                        const word = w.toLowerCase();
-                        if (!word || word.length < 3) return;
-                        if (STOP_WORDS.has(word)) return;
-                        palavrasSet.add(word);
-                    });
-                });
+                const nomes = Array.from(mapaTipos.get(tipo))
+                    .map((n) => String(n || "").trim())
+                    .filter(Boolean)
+                    .sort((a, b) => a.localeCompare(b));
 
-                const palavras = Array.from(palavrasSet).sort((a, b) => a.localeCompare(b));
-                const itens = palavras.map((kw) => `<a href="index.html?busca=${encodeURIComponent(kw)}">${kw}</a>`).join("");
+                const itens = nomes.map((nome) => `<a href="index.html?nome=${encodeURIComponent(nome)}">${nome}</a>`).join("");
                 return `<details class="submenu-type"><summary class="submenu-title">${tipo}</summary><div class="submenu-type-list">${itens}</div></details>`;
             });
 
@@ -184,15 +169,22 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-			// 🔹 Filtros por querystring: tipo e busca
+			// 🔹 Filtros por querystring: tipo, nome (exato no menu) e busca (input)
 			const params = new URLSearchParams(window.location.search);
 			const tipoParam = params.get("tipo");
 			const buscaParam = params.get("busca");
+			const nomeParam = params.get("nome");
 
 			let produtos = data.produtos;
 			if (tipoParam) {
 				const tipoFiltro = tipoParam.trim().toLowerCase();
 				produtos = produtos.filter((p) => ((p.tipo || "").trim().toLowerCase().includes(tipoFiltro)));
+			}
+
+			// Quando houver nome no querystring (links do menu), faz correspondência exata
+			if (nomeParam) {
+				const alvo = nomeParam.trim().toLowerCase();
+				produtos = produtos.filter((p) => (String(p.nome || "").trim().toLowerCase() === alvo));
 			}
 			if (buscaParam) {
 				const termo = buscaParam.toLowerCase();

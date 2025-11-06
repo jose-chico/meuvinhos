@@ -1,7 +1,6 @@
 /* eslint-disable no-undef */
 document.addEventListener("DOMContentLoaded", () => {
-    // Base da API: usa o mesmo host em produção; localhost em dev
-    const API_URL = (/^https?:/i.test(window.location.origin)) ? window.location.origin : "http://localhost:8000";
+    // Esta página não consome a API; remove variável não utilizada para evitar alerta do linter
 	const lista = document.getElementById("checkout-lista");
 	const totalEl = document.getElementById("checkout-total");
 	const msg = document.getElementById("checkout-msg");
