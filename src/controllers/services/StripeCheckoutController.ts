@@ -28,13 +28,13 @@ async function lookupCep(cepRaw: unknown): Promise<null | {
 }
 
 // Util: tenta converter valores em BRL (suporta strings "99,90")
-function parsePrice(input: any): number {
-  if (typeof input === 'number') return input;
-  if (typeof input === 'string') {
+function parsePrice(input: unknown): number {
+  if (typeof input === "number") return input;
+  if (typeof input === "string") {
     const cleaned = input
-      .replace(/[^\d.,-]/g, '')
-      .replace(/\.(?=\d{3}(\D|$))/g, '')
-      .replace(',', '.');
+      .replace(/[^\d.,-]/g, "")
+      .replace(/\.(?=\d{3}(\D|$))/g, "")
+      .replace(",", ".");
     const num = parseFloat(cleaned);
     return Number.isFinite(num) ? num : 0;
   }
@@ -59,10 +59,10 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
 
     const stripe = new Stripe(secretKey);
     // Flags de métodos: Pix e Boleto (true/false/auto)
-    const enablePixEnv = String(process.env.ENABLE_PIX ?? 'auto').toLowerCase();
-    const enableBoletoEnv = String(process.env.ENABLE_BOLETO ?? 'auto').toLowerCase();
-    const allowPix = enablePixEnv === 'true' ? true : enablePixEnv === 'false' ? false : true;
-    const allowBoleto = enableBoletoEnv === 'true' ? true : enableBoletoEnv === 'false' ? false : true;
+    const enablePixEnv = String(process.env.ENABLE_PIX ?? "auto").toLowerCase();
+    const enableBoletoEnv = String(process.env.ENABLE_BOLETO ?? "auto").toLowerCase();
+    const allowPix = enablePixEnv === "true" ? true : enablePixEnv === "false" ? false : true;
+    const allowBoleto = enableBoletoEnv === "true" ? true : enableBoletoEnv === "false" ? false : true;
 
     const totalStr = String(req.query.total ?? "0");
     const total = parseFloat(totalStr);
@@ -80,48 +80,48 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
   const rawSuccessUrlEnv = (process.env.CHECKOUT_SUCCESS_URL || `${appUrl}/`).replace(/\/$/, "");
   const rawSuccessUrl = /^https?:\/\//.test(rawSuccessUrlEnv)
     ? rawSuccessUrlEnv
-    : `${appUrl}${rawSuccessUrlEnv.startsWith('/') ? '' : '/'}${rawSuccessUrlEnv}`;
+    : `${appUrl}${rawSuccessUrlEnv.startsWith("/") ? "" : "/"}${rawSuccessUrlEnv}`;
   const successUrl = /\{CHECKOUT_SESSION_ID\}/.test(rawSuccessUrl) || /session_id=/.test(rawSuccessUrl)
     ? rawSuccessUrl
-    : `${rawSuccessUrl}${rawSuccessUrl.includes('?') ? '&' : '?'}session_id={CHECKOUT_SESSION_ID}`;
+    : `${rawSuccessUrl}${rawSuccessUrl.includes("?") ? "&" : "?"}session_id={CHECKOUT_SESSION_ID}`;
   const rawCancelUrlEnv = (process.env.CHECKOUT_CANCEL_URL || `${appUrl}/pages/checkout-cep.html`).replace(/\/$/, "");
   const cancelUrl = /^https?:\/\//.test(rawCancelUrlEnv)
     ? rawCancelUrlEnv
-    : `${appUrl}${rawCancelUrlEnv.startsWith('/') ? '' : '/'}${rawCancelUrlEnv}`;
+    : `${appUrl}${rawCancelUrlEnv.startsWith("/") ? "" : "/"}${rawCancelUrlEnv}`;
 
     const amountInCents = Math.round(total * 100);
-    const boletoExpiresDaysRaw = parseInt(String(process.env.BOLETO_EXPIRES_AFTER_DAYS ?? '3'), 10);
+    const boletoExpiresDaysRaw = parseInt(String(process.env.BOLETO_EXPIRES_AFTER_DAYS ?? "3"), 10);
     const boletoExpiresDays = Number.isFinite(boletoExpiresDaysRaw) && boletoExpiresDaysRaw > 0 ? boletoExpiresDaysRaw : 3;
     const currency = (String(req.query.currency || "BRL").toUpperCase());
 
-    console.log('[Checkout GET] total, currency, allowPix, allowBoleto, boletoExpiresDays, mode', { total, currency, allowPix, allowBoleto, boletoExpiresDays, mode: isLiveKey ? 'live' : 'test' });
+    console.log("[Checkout GET] total, currency, allowPix, allowBoleto, boletoExpiresDays, mode", { total, currency, allowPix, allowBoleto, boletoExpiresDays, mode: isLiveKey ? "live" : "test" });
     let session;
     try {
       // Métodos solicitados: sempre 'card', adiciona Pix/Boleto se permitido e BRL
-      const paymentMethods: string[] = ['card'];
-      if (currency === 'BRL' && allowPix) paymentMethods.push('pix');
-      if (currency === 'BRL' && allowBoleto) paymentMethods.push('boleto');
-      const paymentMethodOptions: any = {};
-      if (paymentMethods.includes('boleto')) {
+      const paymentMethods: string[] = ["card"];
+      if (currency === "BRL" && allowPix) paymentMethods.push("pix");
+      if (currency === "BRL" && allowBoleto) paymentMethods.push("boleto");
+      const paymentMethodOptions: Stripe.Checkout.SessionCreateParams.PaymentMethodOptions = {};
+      if (paymentMethods.includes("boleto")) {
         paymentMethodOptions.boleto = { expires_after_days: boletoExpiresDays };
       }
       // Habilitar parcelamento no cartão (instalments) quando usando Checkout
       // A quantidade (ex: 3x) é controlada nas configurações de métodos de pagamento do Dashboard.
-      if (paymentMethods.includes('card')) {
+      if (paymentMethods.includes("card")) {
         paymentMethodOptions.card = { installments: { enabled: true } };
       }
       // Tipar explicitamente os países permitidos para evitar erro TS (AllowedCountry[])
       const allowedCountriesGet = (
-        String(process.env.SHIPPING_ALLOWED_COUNTRIES || 'BR')
-          .split(',')
+        String(process.env.SHIPPING_ALLOWED_COUNTRIES || "BR")
+          .split(",")
           .map(c => c.trim().toUpperCase())
           .filter(Boolean)
       ) as Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[];
       session = await stripe.checkout.sessions.create({
         mode: "payment",
-        payment_method_types: paymentMethods as any,
+        payment_method_types: paymentMethods as Stripe.Checkout.SessionCreateParams.PaymentMethodType[],
         locale: "pt-BR",
-        billing_address_collection: 'required',
+        billing_address_collection: "required",
         shipping_address_collection: { allowed_countries: allowedCountriesGet },
         success_url: successUrl,
         cancel_url: cancelUrl,
@@ -137,13 +137,13 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
           },
         ],
       });
-    } catch (e: any) {
-      const msg = String(e?.message || "");
+    } catch (e: unknown) {
+      const msg = typeof e === "object" && e && "message" in e ? String((e as { message?: unknown }).message) : String(e);
       console.warn("[Checkout GET] erro ao criar sessão com métodos solicitados:", msg, "— tentando fallback para cartão apenas.");
       try {
         const allowedCountriesGetFallback = (
-          String(process.env.SHIPPING_ALLOWED_COUNTRIES || 'BR')
-            .split(',')
+          String(process.env.SHIPPING_ALLOWED_COUNTRIES || "BR")
+            .split(",")
             .map(c => c.trim().toUpperCase())
             .filter(Boolean)
         ) as Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[];
@@ -151,7 +151,7 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
           mode: "payment",
           payment_method_types: ["card"],
           locale: "pt-BR",
-          billing_address_collection: 'required',
+          billing_address_collection: "required",
           shipping_address_collection: { allowed_countries: allowedCountriesGetFallback },
           success_url: successUrl,
           cancel_url: cancelUrl,
@@ -166,13 +166,14 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
           },
         ],
         });
-      } catch (e2: any) {
-        console.error('[Checkout GET] fallback cartão falhou', String(e2?.message || e2));
+      } catch (e2: unknown) {
+        const msg2 = typeof e2 === "object" && e2 && "message" in e2 ? String((e2 as { message?: unknown }).message) : String(e2);
+        console.error("[Checkout GET] fallback cartão falhou", msg2);
         throw e2;
       }
     }
 
-    console.log('[Checkout GET] sessão criada', { id: session.id, payment_method_types: session.payment_method_types, currency: session.currency });
+    console.log("[Checkout GET] sessão criada", { id: session.id, payment_method_types: session.payment_method_types, currency: session.currency });
     return res.status(200).json({ message: "Stripe Checkout iniciado", url: session.url });
   } catch (err: unknown) {
     let message = "Erro ao iniciar checkout com Stripe.";
@@ -202,17 +203,18 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
 
     const stripe = new Stripe(secretKey);
     // Flags de métodos: Pix e Boleto (true/false/auto)
-    const enablePixEnv = String(process.env.ENABLE_PIX ?? 'auto').toLowerCase();
-    const enableBoletoEnv = String(process.env.ENABLE_BOLETO ?? 'auto').toLowerCase();
-    const allowPix = enablePixEnv === 'true' ? true : enablePixEnv === 'false' ? false : true;
-    const allowBoleto = enableBoletoEnv === 'true' ? true : enableBoletoEnv === 'false' ? false : true;
+    const enablePixEnv = String(process.env.ENABLE_PIX ?? "auto").toLowerCase();
+    const enableBoletoEnv = String(process.env.ENABLE_BOLETO ?? "auto").toLowerCase();
+    const allowPix = enablePixEnv === "true" ? true : enablePixEnv === "false" ? false : true;
+    const allowBoleto = enableBoletoEnv === "true" ? true : enableBoletoEnv === "false" ? false : true;
 
     // Total enviado pelo cliente; se inválido, tenta calcular a partir dos produtos
     let total = Number(req.body?.total);
     const rawProducts = req.body?.products;
     const products = Array.isArray(rawProducts) ? rawProducts : [];
+    type CartItem = { preco?: unknown; valor?: unknown };
     if (!Number.isFinite(total) || total <= 0) {
-      const sumFromProducts = products.reduce((acc: number, p: any) => acc + parsePrice(p?.preco ?? p?.valor), 0);
+      const sumFromProducts = (products as CartItem[]).reduce((acc: number, p: CartItem) => acc + parsePrice(p?.preco ?? p?.valor), 0);
       if (sumFromProducts > 0) {
         total = Number(sumFromProducts.toFixed(2));
       } else {
@@ -231,60 +233,60 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
   const rawSuccessUrlEnv = (process.env.CHECKOUT_SUCCESS_URL || `${appUrl}/`).replace(/\/$/, "");
   const rawSuccessUrl = /^https?:\/\//.test(rawSuccessUrlEnv)
     ? rawSuccessUrlEnv
-    : `${appUrl}${rawSuccessUrlEnv.startsWith('/') ? '' : '/'}${rawSuccessUrlEnv}`;
+    : `${appUrl}${rawSuccessUrlEnv.startsWith("/") ? "" : "/"}${rawSuccessUrlEnv}`;
   const successUrl = /\{CHECKOUT_SESSION_ID\}/.test(rawSuccessUrl) || /session_id=/.test(rawSuccessUrl)
     ? rawSuccessUrl
-    : `${rawSuccessUrl}${rawSuccessUrl.includes('?') ? '&' : '?'}session_id={CHECKOUT_SESSION_ID}`;
+    : `${rawSuccessUrl}${rawSuccessUrl.includes("?") ? "&" : "?"}session_id={CHECKOUT_SESSION_ID}`;
   const rawCancelUrlEnv = (process.env.CHECKOUT_CANCEL_URL || `${appUrl}/pages/checkout-cep.html`).replace(/\/$/, "");
   const cancelUrl = /^https?:\/\//.test(rawCancelUrlEnv)
     ? rawCancelUrlEnv
-    : `${appUrl}${rawCancelUrlEnv.startsWith('/') ? '' : '/'}${rawCancelUrlEnv}`;
+    : `${appUrl}${rawCancelUrlEnv.startsWith("/") ? "" : "/"}${rawCancelUrlEnv}`;
 
     const amountInCents = Math.round(total * 100);
-    const boletoExpiresDaysRaw = parseInt(String(process.env.BOLETO_EXPIRES_AFTER_DAYS ?? '3'), 10);
+    const boletoExpiresDaysRaw = parseInt(String(process.env.BOLETO_EXPIRES_AFTER_DAYS ?? "3"), 10);
     const boletoExpiresDays = Number.isFinite(boletoExpiresDaysRaw) && boletoExpiresDaysRaw > 0 ? boletoExpiresDaysRaw : 3;
 
     // Extrair produtos do carrinho (se enviados)
     // já normalizado acima
     
-    console.log('[Checkout POST] total, currency, allowPix, allowBoleto, boletoExpiresDays, mode', { total, currency, allowPix, allowBoleto, boletoExpiresDays, mode: isLiveKey ? 'live' : 'test' });
+    console.log("[Checkout POST] total, currency, allowPix, allowBoleto, boletoExpiresDays, mode", { total, currency, allowPix, allowBoleto, boletoExpiresDays, mode: isLiveKey ? "live" : "test" });
     let session;
     try {
-      const paymentMethods: string[] = ['card'];
-      if (currency === 'BRL' && allowPix) paymentMethods.push('pix');
-      if (currency === 'BRL' && allowBoleto) paymentMethods.push('boleto');
-      const paymentMethodOptions: any = {};
-      if (paymentMethods.includes('boleto')) {
+      const paymentMethods: string[] = ["card"];
+      if (currency === "BRL" && allowPix) paymentMethods.push("pix");
+      if (currency === "BRL" && allowBoleto) paymentMethods.push("boleto");
+      const paymentMethodOptions: Stripe.Checkout.SessionCreateParams.PaymentMethodOptions = {};
+      if (paymentMethods.includes("boleto")) {
         paymentMethodOptions.boleto = { expires_after_days: boletoExpiresDays };
       }
       // Habilitar parcelamento no cartão (instalments) no POST também
-      if (paymentMethods.includes('card')) {
+      if (paymentMethods.includes("card")) {
         paymentMethodOptions.card = { installments: { enabled: true } };
       }
       const allowedCountriesPost = (
-        String(process.env.SHIPPING_ALLOWED_COUNTRIES || 'BR')
-          .split(',')
+        String(process.env.SHIPPING_ALLOWED_COUNTRIES || "BR")
+          .split(",")
           .map(c => c.trim().toUpperCase())
           .filter(Boolean)
       ) as Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[];
       // Opcional: pré-preencher endereço e email através de Customer, baseado em CEP
       let customerId: string | undefined;
-      const name = String(req.body?.name || '').trim() || undefined;
-      const email = String(req.body?.email || '').trim() || undefined;
+      const name = String(req.body?.name || "").trim() || undefined;
+      const email = String(req.body?.email || "").trim() || undefined;
       const cepRaw = req.body?.cep;
-      const numero = String(req.body?.numero || '').trim() || undefined;
-      const complemento = String(req.body?.complemento || '').trim() || undefined;
+      const numero = String(req.body?.numero || "").trim() || undefined;
+      const complemento = String(req.body?.complemento || "").trim() || undefined;
       const via = await lookupCep(cepRaw);
       let prefillAddress: Stripe.AddressParam | undefined;
       if (via) {
-        const line1 = [via.logradouro, numero].filter(Boolean).join(', ');
+        const line1 = [via.logradouro, numero].filter(Boolean).join(", ");
         prefillAddress = {
           line1: line1 || undefined,
           line2: complemento || undefined,
           city: via.localidade || undefined,
           state: via.uf || undefined,
           postal_code: via.cep,
-          country: 'BR',
+          country: "BR",
         };
       }
 
@@ -319,8 +321,9 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
           const created = await stripe.customers.create(params);
           customerId = created.id;
         }
-      } catch (e) {
-        console.warn('[Checkout POST] não foi possível preparar Customer para prefill:', String((e as any)?.message || e));
+      } catch (e: unknown) {
+        const msg = typeof e === "object" && e && "message" in e ? String((e as { message?: unknown }).message) : String(e);
+        console.warn("[Checkout POST] não foi possível preparar Customer para prefill:", msg);
       }
 
       const sessionMetadata: Stripe.MetadataParam = {
@@ -336,9 +339,9 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
 
       const sessionParams: Stripe.Checkout.SessionCreateParams = {
         mode: "payment",
-        payment_method_types: paymentMethods as any,
+        payment_method_types: paymentMethods as Stripe.Checkout.SessionCreateParams.PaymentMethodType[],
         locale: "pt-BR",
-        billing_address_collection: 'required',
+        billing_address_collection: "required",
         shipping_address_collection: { allowed_countries: allowedCountriesPost },
         success_url: successUrl,
         cancel_url: cancelUrl,
@@ -357,39 +360,39 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
       };
       if (customerId) {
         sessionParams.customer = customerId;
-        sessionParams.customer_update = { address: 'auto', shipping: 'auto' };
+        sessionParams.customer_update = { address: "auto", shipping: "auto" };
       } else if (email) {
         sessionParams.customer_email = email;
       }
       session = await stripe.checkout.sessions.create(sessionParams);
-    } catch (e: any) {
-      const msg = String(e?.message || "");
+    } catch (e: unknown) {
+      const msg = typeof e === "object" && e && "message" in e ? String((e as { message?: unknown }).message) : String(e);
       console.warn("[Checkout POST] erro ao criar sessão com métodos solicitados:", msg, "— tentando fallback para cartão apenas.");
       try {
         const allowedCountriesPostFallback = (
-          String(process.env.SHIPPING_ALLOWED_COUNTRIES || 'BR')
-            .split(',')
+          String(process.env.SHIPPING_ALLOWED_COUNTRIES || "BR")
+            .split(",")
             .map(c => c.trim().toUpperCase())
             .filter(Boolean)
         ) as Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[];
         // Repete a lógica de customer no fallback
         let customerId: string | undefined;
-        const name = String(req.body?.name || '').trim() || undefined;
-        const email = String(req.body?.email || '').trim() || undefined;
+        const name = String(req.body?.name || "").trim() || undefined;
+        const email = String(req.body?.email || "").trim() || undefined;
         const cepRaw = req.body?.cep;
-        const numero = String(req.body?.numero || '').trim() || undefined;
-        const complemento = String(req.body?.complemento || '').trim() || undefined;
+        const numero = String(req.body?.numero || "").trim() || undefined;
+        const complemento = String(req.body?.complemento || "").trim() || undefined;
         const via = await lookupCep(cepRaw);
         let prefillAddress: Stripe.AddressParam | undefined;
         if (via) {
-          const line1 = [via.logradouro, numero].filter(Boolean).join(', ');
+          const line1 = [via.logradouro, numero].filter(Boolean).join(", ");
           prefillAddress = {
             line1: line1 || undefined,
             line2: complemento || undefined,
             city: via.localidade || undefined,
             state: via.uf || undefined,
             postal_code: via.cep,
-            country: 'BR',
+            country: "BR",
           };
         }
         try {
@@ -422,8 +425,9 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
           const created = await stripe.customers.create(params);
           customerId = created.id;
         }
-        } catch (e) {
-          console.warn('[Checkout POST] fallback: não foi possível preparar Customer para prefill:', String((e as any)?.message || e));
+        } catch (e: unknown) {
+          const msgPrep = typeof e === "object" && e && "message" in e ? String((e as { message?: unknown }).message) : String(e);
+          console.warn("[Checkout POST] fallback: não foi possível preparar Customer para prefill:", msgPrep);
         }
 
         const fallbackMetadata: Stripe.MetadataParam = {
@@ -441,7 +445,7 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
           mode: "payment",
           payment_method_types: ["card"],
           locale: "pt-BR",
-          billing_address_collection: 'required',
+          billing_address_collection: "required",
           shipping_address_collection: { allowed_countries: allowedCountriesPostFallback },
           success_url: successUrl,
           cancel_url: cancelUrl,
@@ -461,18 +465,19 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
         };
         if (customerId) {
           fallbackParams.customer = customerId;
-          fallbackParams.customer_update = { address: 'auto', shipping: 'auto' };
+          fallbackParams.customer_update = { address: "auto", shipping: "auto" };
         } else if (email) {
           fallbackParams.customer_email = email;
         }
         session = await stripe.checkout.sessions.create(fallbackParams);
-      } catch (e2: any) {
-        console.error('[Checkout POST] fallback cartão falhou', String(e2?.message || e2));
+      } catch (e2: unknown) {
+        const msg2 = typeof e2 === "object" && e2 && "message" in e2 ? String((e2 as { message?: unknown }).message) : String(e2);
+        console.error("[Checkout POST] fallback cartão falhou", msg2);
         throw e2;
       }
     }
 
-    console.log('[Checkout POST] sessão criada', { id: session.id, payment_method_types: session.payment_method_types, currency: session.currency });
+    console.log("[Checkout POST] sessão criada", { id: session.id, payment_method_types: session.payment_method_types, currency: session.currency });
     return res.status(200).json({ message: "Stripe Checkout iniciado", url: session.url });
   } catch (err: unknown) {
     let message = "Erro ao iniciar checkout com Stripe.";
