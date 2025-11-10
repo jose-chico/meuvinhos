@@ -105,6 +105,11 @@ export const StripeCheckoutController = async (req: Request, res: Response) => {
       if (paymentMethods.includes('boleto')) {
         paymentMethodOptions.boleto = { expires_after_days: boletoExpiresDays };
       }
+      // Habilitar parcelamento no cartão (instalments) quando usando Checkout
+      // A quantidade (ex: 3x) é controlada nas configurações de métodos de pagamento do Dashboard.
+      if (paymentMethods.includes('card')) {
+        paymentMethodOptions.card = { installments: { enabled: true } };
+      }
       // Tipar explicitamente os países permitidos para evitar erro TS (AllowedCountry[])
       const allowedCountriesGet = (
         String(process.env.SHIPPING_ALLOWED_COUNTRIES || 'BR')
@@ -251,6 +256,10 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
       const paymentMethodOptions: any = {};
       if (paymentMethods.includes('boleto')) {
         paymentMethodOptions.boleto = { expires_after_days: boletoExpiresDays };
+      }
+      // Habilitar parcelamento no cartão (instalments) no POST também
+      if (paymentMethods.includes('card')) {
+        paymentMethodOptions.card = { installments: { enabled: true } };
       }
       const allowedCountriesPost = (
         String(process.env.SHIPPING_ALLOWED_COUNTRIES || 'BR')
@@ -436,6 +445,8 @@ export const StripeCheckoutControllerPost = async (req: Request, res: Response) 
           shipping_address_collection: { allowed_countries: allowedCountriesPostFallback },
           success_url: successUrl,
           cancel_url: cancelUrl,
+          // Mantém parcelamento habilitado mesmo no fallback de cartão
+          payment_method_options: { card: { installments: { enabled: true } } },
           metadata: fallbackMetadata,
           line_items: [
             {
